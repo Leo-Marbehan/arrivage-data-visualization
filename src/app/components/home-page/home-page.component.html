@@ -1,0 +1,23 @@
+<main class="flex-row align-center">
+  <section class="menu flex-column align-center">
+    <h1 class="title">Visualisation de données</h1>
+
+    <article class="flex-column gap-1-rem">
+      <button mat-raised-button disabled>Visualisation 1</button>
+      <button mat-raised-button disabled>Visualisation 2</button>
+      <button mat-raised-button disabled>Visualisation 3</button>
+      <button mat-raised-button disabled>Visualisation 4</button>
+      <button mat-raised-button (click)="navigateToRawData()">
+        Données brutes
+      </button>
+    </article>
+  </section>
+
+  <section class="flex-column align-center">
+    <div class="logo-container flex-column align-center">
+      <img src="arrivage-logo.png" alt="Arrivage Logo" class="logo" />
+    </div>
+    <span class="x"> X </span>
+    <div class="class-name">INF8808E</div>
+  </section>
+</main>
