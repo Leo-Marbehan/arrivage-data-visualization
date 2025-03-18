@@ -12,6 +12,6 @@ export class HomePageComponent {
   constructor(private readonly router: Router) {}
 
   async navigateToRawData() {
-    await this.router.navigate(['/raw-data']);
+    await this.router.navigate(['raw-data']);
   }
 }
