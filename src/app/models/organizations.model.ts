@@ -1,0 +1,177 @@
+export interface Organization {
+  id: string;
+  language: Language;
+  country: string;
+  province: string;
+  region: string;
+  subRegion: string;
+  city: string;
+  creationTimestamp: Date;
+}
+
+export interface VendorOrganization extends Organization {
+  productCategories: VendorProductCategory[];
+}
+
+export interface BuyerOrganization extends Organization {
+  category: BuyerOrganizationCategory;
+  isPro: boolean;
+}
+
+export type Language = 'fr' | 'en';
+
+export type VendorProductCategory =
+  | 'vegetable-fruit'
+  | 'meat'
+  | 'processed-product'
+  | 'maple-honey'
+  | 'bread'
+  | 'dairy'
+  | 'wild-product'
+  | 'seafood'
+  | 'oils-and-vinegars'
+  | 'alcohol-free-drink'
+  | 'alcohol-below-18-drink'
+  | 'alcohol-above-18-drink'
+  | 'non-food-products';
+
+export const VENDOR_PRODUCT_CATEGORIES: VendorProductCategory[] = [
+  'vegetable-fruit',
+  'meat',
+  'processed-product',
+  'maple-honey',
+  'bread',
+  'dairy',
+  'wild-product',
+  'seafood',
+  'oils-and-vinegars',
+  'alcohol-free-drink',
+  'alcohol-below-18-drink',
+  'alcohol-above-18-drink',
+  'non-food-products',
+];
+
+export const RAW_VENDOR_PRODUCT_CATEGORIES: string[] = [
+  'vegetable_fruit',
+  'meat',
+  'processed_product',
+  'maple_honey',
+  'bread',
+  'dairy',
+  'wild_product',
+  'seafood',
+  'oils_and_vinegars',
+  'alcohol_free_drink',
+  'alcohol_below_18_drink',
+  'alcohol_above_18_drink',
+  'non_food_products',
+];
+
+export function mapVendorProductCategory(
+  rawProductCategory: string
+): VendorProductCategory {
+  switch (rawProductCategory) {
+    case 'vegetable_fruit':
+      return 'vegetable-fruit';
+    case 'meat':
+      return 'meat';
+    case 'processed_product':
+      return 'processed-product';
+    case 'maple_honey':
+      return 'maple-honey';
+    case 'bread':
+      return 'bread';
+    case 'dairy':
+      return 'dairy';
+    case 'wild_product':
+      return 'wild-product';
+    case 'seafood':
+      return 'seafood';
+    case 'oils_and_vinegars':
+      return 'oils-and-vinegars';
+    case 'alcohol_free_drink':
+      return 'alcohol-free-drink';
+    case 'alcohol_below_18_drink':
+      return 'alcohol-below-18-drink';
+    case 'alcohol_above_18_drink':
+      return 'alcohol-above-18-drink';
+    case 'non_food_products':
+      return 'non-food-products';
+    default:
+      throw new Error(`Invalid raw product category: ${rawProductCategory}`);
+  }
+}
+
+export type BuyerOrganizationCategory =
+  | 'specialized-grocery-store'
+  | 'restaurant'
+  | 'grocery-store'
+  | 'artisan'
+  | 'institution'
+  | 'community-organization'
+  | 'distributor'
+  | 'producer'
+  | 'event-fest'
+  | 'purchasing-group'
+  | 'consumer';
+
+export const BUYER_ORGANIZATION_CATEGORIES: BuyerOrganizationCategory[] = [
+  'specialized-grocery-store',
+  'restaurant',
+  'grocery-store',
+  'artisan',
+  'institution',
+  'community-organization',
+  'distributor',
+  'producer',
+  'event-fest',
+  'purchasing-group',
+  'consumer',
+];
+
+export const RAW_BUYER_ORGANIZATION_CATEGORIES: string[] = [
+  'specialized_grocery_store',
+  'restaurant',
+  'grocery_store',
+  'artisan',
+  'institution',
+  'community_organization',
+  'distributor',
+  'producer',
+  'event_fest',
+  'purchasing_group',
+  'consumer',
+];
+
+export function mapBuyerOrganizationCategory(
+  rawCategory: string
+): BuyerOrganizationCategory {
+  switch (rawCategory) {
+    case 'specialized_grocery_store':
+      return 'specialized-grocery-store';
+    case 'restaurant':
+      return 'restaurant';
+    case 'grocery_store':
+      return 'grocery-store';
+    case 'artisan':
+      return 'artisan';
+    case 'institution':
+      return 'institution';
+    case 'community_organization':
+      return 'community-organization';
+    case 'distributor':
+      return 'distributor';
+    case 'producer':
+      return 'producer';
+    case 'event_fest':
+      return 'event-fest';
+    case 'purchasing_group':
+      return 'purchasing-group';
+    case 'consumer':
+      return 'consumer';
+    default:
+      throw new Error(
+        `Invalid raw buyer organization category: ${rawCategory}`
+      );
+  }
+}
