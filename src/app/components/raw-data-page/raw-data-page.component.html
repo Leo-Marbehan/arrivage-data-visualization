@@ -1,0 +1,34 @@
+<app-toolbar></app-toolbar>
+
+<main class="container">
+  <h1>Données brutes</h1>
+
+  <p>
+    Cette page présente l'ensemble des données brutes de l'application. Vous
+    pouvez ci dessous visualiser les commandes ainsi que les organisations.
+    Cliquez sur le bouton pour changer de vue.
+  </p>
+
+  @let view = viewSignal();
+  <button
+    mat-raised-button
+    color="primary"
+    disabled
+    (click)="onToggleViewButtonClick()">
+    <mat-icon>swap_horiz</mat-icon>
+    {{
+      view === 'organizations' ? 'Voir les commandes' : 'Voir les organisations'
+    }}
+  </button>
+
+  <section class="table">
+    @switch (view) {
+      @case ('organizations') {
+        <app-organizations-table [organizations]="organizations" />
+      }
+      @case ('purchaseOrders') {
+        <!-- TODO -->
+      }
+    }
+  </section>
+</main>

@@ -1,0 +1,46 @@
+@use '../../styles/flex.styles.scss';
+
+.cell {
+  min-height: 1.5rem;
+  max-height: 1.5rem;
+  text-overflow: ellipsis;
+  line-height: 1.5rem;
+  word-wrap: break-word;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.header {
+  font-weight: bold;
+}
+
+.language,
+.country,
+.province,
+.creation-timestamp,
+.is-pro {
+  flex: 0.75;
+}
+
+.region,
+.sub-region,
+.city,
+.category {
+  flex: 1;
+}
+
+.id,
+.product-categories {
+  flex: 1.5;
+}
+
+mat-divider {
+  border-color: #e0e0e0;
+}
+
+.table {
+  // The table should be at least 1280px wide, including the padding.
+  // This matches the minimum width of a large screen.
+  // See https://github.com/angular/flex-layout/wiki/Responsive-API for more information.
+  min-width: calc(1280px - 2 * 2rem);
+}

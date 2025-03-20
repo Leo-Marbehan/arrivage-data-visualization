@@ -18,6 +18,18 @@ export interface BuyerOrganization extends Organization {
   isPro: boolean;
 }
 
+export function isVendorOrganization(
+  organization: Organization
+): organization is VendorOrganization {
+  return 'productCategories' in organization;
+}
+
+export function isBuyerOrganization(
+  organization: Organization
+): organization is BuyerOrganization {
+  return 'category' in organization && 'isPro' in organization;
+}
+
 export type Language = 'fr' | 'en';
 
 export type VendorProductCategory =
@@ -102,6 +114,39 @@ export function mapVendorProductCategory(
   }
 }
 
+export function translateVendorProductCategory(
+  productCategory: VendorProductCategory
+): string {
+  switch (productCategory) {
+    case 'vegetable-fruit':
+      return 'Fruits et légumes';
+    case 'meat':
+      return 'Viandes';
+    case 'processed-product':
+      return 'Produits transformés';
+    case 'maple-honey':
+      return 'Sirop d’érable et miel';
+    case 'bread':
+      return 'Pains et pâtisseries';
+    case 'dairy':
+      return 'Produits laitiers';
+    case 'wild-product':
+      return 'Produits sauvages';
+    case 'seafood':
+      return 'Produits de la mer';
+    case 'oils-and-vinegars':
+      return 'Huiles et vinaigres';
+    case 'alcohol-free-drink':
+      return 'Boissons sans alcool';
+    case 'alcohol-below-18-drink':
+      return 'Boissons alcoolisées (< 18%)';
+    case 'alcohol-above-18-drink':
+      return 'Boissons alcoolisées (> 18%)';
+    case 'non-food-products':
+      return 'Produits non alimentaires';
+  }
+}
+
 export type BuyerOrganizationCategory =
   | 'specialized-grocery-store'
   | 'restaurant'
@@ -173,5 +218,45 @@ export function mapBuyerOrganizationCategory(
       throw new Error(
         `Invalid raw buyer organization category: ${rawCategory}`
       );
+  }
+}
+
+export function translateBuyerOrganizationCategory(
+  category: BuyerOrganizationCategory
+): string {
+  switch (category) {
+    case 'specialized-grocery-store':
+      // Petites épiceries et comptoirs
+      return 'Épicerie spécialisée';
+    case 'restaurant':
+      // Restaurants, traiteurs, hôtels
+      return 'Restaurant';
+    case 'grocery-store':
+      // Grandes épiceries et bannières
+      return 'Épicerie';
+    case 'artisan':
+      // Artisans, transformateurs, boulangers, pâtissiers, etc.
+      return 'Artisan';
+    case 'institution':
+      // CPE, écoles, RPA, hôpitaux, etc.
+      return 'Institution';
+    case 'community-organization':
+      // Banques alimentaires, popotes roulantes, organismes en sécurité alimentaire
+      return 'Organisme communautaire';
+    case 'distributor':
+      // Distributeurs, grossistes et vente en gros
+      return 'Distributeur';
+    case 'producer':
+      // Agriculteurs et boutiques à la ferme
+      return 'Agriculteur';
+    case 'event-fest':
+      // Événements et festivals
+      return 'Événement/festival';
+    case 'purchasing-group':
+      // Groupes d'achats citoyens
+      return "Groupe d'achat citoyen";
+    case 'consumer':
+      // Particuliers
+      return 'Particulier';
   }
 }

@@ -52,6 +52,10 @@ export class OrganizationsService {
     return this._buyerOrganizations.filter(buyer => !buyer.isPro);
   }
 
+  get organizations(): Organization[] {
+    return [...this._vendorOrganizations, ...this._buyerOrganizations];
+  }
+
   private async loadOrganizations() {
     const vendorOrganizations = await this.loadVendors();
     const proBuyerOrganizations = await this.loadBuyersPro();

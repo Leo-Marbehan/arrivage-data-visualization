@@ -1,4 +1,4 @@
-import { Component, effect } from '@angular/core';
+import { Component, effect, Signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { LoadingService } from './services/loading.service';
 import { OrganizationsService } from './services/organizations.service';
@@ -15,11 +15,15 @@ export class AppComponent {
     private readonly loadingService: LoadingService
   ) {
     effect(() => {
-      if (this.organizationsService.isInitializedSignal()) {
+      if (this.isInitializedSignal()) {
         this.loadingService.stop();
       } else {
         this.loadingService.start('Loading organizations...');
       }
     });
+  }
+
+  get isInitializedSignal(): Signal<boolean> {
+    return this.organizationsService.isInitializedSignal;
   }
 }
