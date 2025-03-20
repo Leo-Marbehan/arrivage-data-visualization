@@ -48,6 +48,7 @@ module.exports = tseslint.config(
           destructuredArrayIgnorePattern: '^_',
         },
       ],
+      '@angular-eslint/no-input-rename': 'off',
     },
   },
   {

@@ -76,11 +76,18 @@ export class OrganizationsService {
       this.VENDORS_FILE_PATH
     );
 
-    return rawVendors
-      .map((rawVendor, index) => {
-        return this.extractVendorOrganization(rawVendor, index);
-      })
-      .filter((vendor): vendor is VendorOrganization => vendor !== null);
+    return (
+      rawVendors
+        .map((rawVendor, index) => {
+          return this.extractVendorOrganization(rawVendor, index);
+        })
+        .filter((vendor): vendor is VendorOrganization => vendor !== null)
+        // Remove duplicates id
+        .filter(
+          (vendor, index, vendors) =>
+            vendors.findIndex(v => v.id === vendor.id) === index
+        )
+    );
   }
 
   private async loadBuyersPro(): Promise<BuyerOrganization[]> {
@@ -88,11 +95,18 @@ export class OrganizationsService {
       this.BUYERS_PRO_FILE_PATH
     );
 
-    return rawBuyersPro
-      .map((rawBuyerPro, index) => {
-        return this.extractBuyerOrganization(rawBuyerPro, 'Buyer pro', index);
-      })
-      .filter((buyerPro): buyerPro is BuyerOrganization => buyerPro !== null);
+    return (
+      rawBuyersPro
+        .map((rawBuyerPro, index) => {
+          return this.extractBuyerOrganization(rawBuyerPro, 'Buyer pro', index);
+        })
+        .filter((buyerPro): buyerPro is BuyerOrganization => buyerPro !== null)
+        // Remove duplicates id
+        .filter(
+          (buyerPro, index, buyers) =>
+            buyers.findIndex(b => b.id === buyerPro.id) === index
+        )
+    );
   }
 
   private async loadBuyersNotPro(): Promise<BuyerOrganization[]> {
@@ -100,17 +114,25 @@ export class OrganizationsService {
       this.BUYERS_NOT_PRO_FILE_PATH
     );
 
-    return rawBuyersNotPro
-      .map((rawBuyerNotPro, index) => {
-        return this.extractBuyerOrganization(
-          rawBuyerNotPro,
-          'Buyer not pro',
-          index
-        );
-      })
-      .filter(
-        (buyerNotPro): buyerNotPro is BuyerOrganization => buyerNotPro !== null
-      );
+    return (
+      rawBuyersNotPro
+        .map((rawBuyerNotPro, index) => {
+          return this.extractBuyerOrganization(
+            rawBuyerNotPro,
+            'Buyer not pro',
+            index
+          );
+        })
+        .filter(
+          (buyerNotPro): buyerNotPro is BuyerOrganization =>
+            buyerNotPro !== null
+        )
+        // Remove duplicates id
+        .filter(
+          (buyerNotPro, index, buyers) =>
+            buyers.findIndex(b => b.id === buyerNotPro.id) === index
+        )
+    );
   }
 
   private extractVendorOrganization(
@@ -194,7 +216,7 @@ export class OrganizationsService {
     index: number
   ): Organization | null {
     const id = rawOrganization['unique_id'];
-    if (id === undefined) {
+    if (id === undefined || id === '') {
       console.error(type, 'id is missing for index', index);
       return null;
     }
