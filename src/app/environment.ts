@@ -1,3 +1,3 @@
 export const environment = {
-  production: false,
+  production: true, // Should always be true when merging to main
 };
