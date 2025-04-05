@@ -1,8 +1,8 @@
 import { Component, computed, effect, Signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { LoadingService } from './services/loading.service';
+import { OrdersService } from './services/orders.service';
 import { OrganizationsService } from './services/organizations.service';
-import { PurchaseOrdersService } from './services/purchase-orders.service';
 
 @Component({
   selector: 'app-root',
@@ -14,13 +14,13 @@ export class AppComponent {
   readonly isInitializedSignal: Signal<boolean> = computed(() => {
     return (
       this.organizationsService.isInitializedSignal() &&
-      this.purchaseOrdersService.isInitializedSignal()
+      this.ordersService.isInitializedSignal()
     );
   });
 
   constructor(
     private readonly organizationsService: OrganizationsService,
-    private readonly purchaseOrdersService: PurchaseOrdersService,
+    private readonly ordersService: OrdersService,
     private readonly loadingService: LoadingService
   ) {
     effect(() => {

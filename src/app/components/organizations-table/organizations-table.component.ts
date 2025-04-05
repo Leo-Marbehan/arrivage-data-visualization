@@ -21,17 +21,10 @@ import {
   VendorOrganization,
 } from '../../models/organizations.model';
 
-export type SortColumn =
-  | 'id'
-  | 'language'
-  | 'country'
-  | 'province'
-  | 'region'
-  | 'subRegion'
-  | 'city'
-  | 'creationTimestamp'
-  | 'buyerOrganizationCategory'
-  | 'isPro';
+type SortColumn = keyof Omit<
+  VendorOrganization & BuyerOrganization,
+  'productCategories'
+>;
 
 @Component({
   selector: 'app-organizations-table',
@@ -53,7 +46,7 @@ export class OrganizationsTableComponent {
   readonly sortedOrganizationsSignal: Signal<Organization[]> = computed(() => {
     const organizations = this.organizationsInputSignal();
     const sort = this.sortSignal();
-    if (!sort) {
+    if (sort === null) {
       return organizations;
     }
 
@@ -61,40 +54,24 @@ export class OrganizationsTableComponent {
 
     switch (sort.column) {
       case 'id':
-        return organizations.sort(
-          (a, b) => a.id.localeCompare(b.id) * multiplier
-        );
       case 'language':
-        return organizations.sort(
-          (a, b) => a.language.localeCompare(b.language) * multiplier
-        );
       case 'country':
-        return organizations.sort(
-          (a, b) => a.country.localeCompare(b.country) * multiplier
-        );
       case 'province':
-        return organizations.sort(
-          (a, b) => a.province.localeCompare(b.province) * multiplier
-        );
       case 'region':
-        return organizations.sort(
-          (a, b) => a.region.localeCompare(b.region) * multiplier
-        );
       case 'subRegion':
-        return organizations.sort(
-          (a, b) => a.subRegion.localeCompare(b.subRegion) * multiplier
-        );
       case 'city':
-        return organizations.sort(
-          (a, b) => a.city.localeCompare(b.city) * multiplier
-        );
+        return organizations.sort((a, b) => {
+          const aValue: string = a[sort.column as keyof Organization] as string;
+          const bValue: string = b[sort.column as keyof Organization] as string;
+          return aValue.localeCompare(bValue) * multiplier;
+        });
       case 'creationTimestamp':
         return organizations.sort(
           (a, b) =>
             (a.creationTimestamp.getTime() - b.creationTimestamp.getTime()) *
             multiplier
         );
-      case 'buyerOrganizationCategory':
+      case 'category':
         return organizations.sort((a, b) => {
           const aCategory = isBuyerOrganization(a) ? a.category : '';
           const bCategory = isBuyerOrganization(b) ? b.category : '';
@@ -147,23 +124,18 @@ export class OrganizationsTableComponent {
   cssClassToSortColumn(column: string): SortColumn {
     switch (column) {
       case 'id':
-        return 'id';
       case 'language':
-        return 'language';
       case 'country':
-        return 'country';
       case 'province':
-        return 'province';
       case 'region':
-        return 'region';
+      case 'city':
+        return column as SortColumn;
       case 'sub-region':
         return 'subRegion';
-      case 'city':
-        return 'city';
       case 'creation-timestamp':
         return 'creationTimestamp';
       case 'buyer-organization-category':
-        return 'buyerOrganizationCategory';
+        return 'category';
       case 'is-pro':
         return 'isPro';
       default:

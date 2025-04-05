@@ -1,98 +1,84 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
 import { environment } from '../environment';
 import {
-  PURCHASE_ORDER_DISTRIBUTION_MODES,
-  PurchaseOrder,
-  PurchaseOrderDistributionMode,
-  PurchaseOrderStatus,
-} from '../models/purchase-orders.model';
+  Order,
+  ORDER_DISTRIBUTION_MODES,
+  OrderDistributionMode,
+  OrderStatus,
+} from '../models/orders.model';
 import { CsvService } from './csv.service';
 
 @Injectable({
   providedIn: 'root',
 })
-export class PurchaseOrdersService {
-  private readonly CANCELLED_PURCHASE_ORDERS_FILE_PATH =
+export class OrdersService {
+  private readonly CANCELLED_ORDERS_FILE_PATH =
     'data/dataset-arrivage-orders - Cancelled.csv';
-  private readonly COMPLETED_PURCHASE_ORDERS_FILE_PATH =
+  private readonly COMPLETED_ORDERS_FILE_PATH =
     'data/dataset-arrivage-orders - Completed.csv';
-  private readonly CONFIRMED_PURCHASE_ORDERS_FILE_PATH =
+  private readonly CONFIRMED_ORDERS_FILE_PATH =
     'data/dataset-arrivage-orders - Confirmed.csv';
-  private readonly DELIVERED_PURCHASE_ORDERS_FILE_PATH =
+  private readonly DELIVERED_ORDERS_FILE_PATH =
     'data/dataset-arrivage-orders - Delivered.csv';
-  private readonly PAID_PURCHASE_ORDERS_FILE_PATH =
+  private readonly PAID_ORDERS_FILE_PATH =
     'data/dataset-arrivage-orders - Paid.csv';
-  private readonly SUBMITTED_PURCHASE_ORDERS_FILE_PATH =
+  private readonly SUBMITTED_ORDERS_FILE_PATH =
     'data/dataset-arrivage-orders - Submitted.csv';
 
   private readonly _isInitializedSignal: WritableSignal<boolean> =
     signal(false);
 
-  private _purchaseOrders: PurchaseOrder[] = [];
+  private _orders: Order[] = [];
 
   constructor(private readonly csvService: CsvService) {
-    void this.loadPurchaseOrders();
+    void this.loadOrders();
   }
 
   get isInitializedSignal(): WritableSignal<boolean> {
     return this._isInitializedSignal;
   }
 
-  private async loadPurchaseOrders() {
-    const cancelledPurchaseOrders = await this.loadPurchaseOrdersFromFile(
-      this.CANCELLED_PURCHASE_ORDERS_FILE_PATH,
+  get orders(): Order[] {
+    return this._orders;
+  }
+
+  private async loadOrders() {
+    const cancelledOrders = await this.loadOrdersFromFile(
+      this.CANCELLED_ORDERS_FILE_PATH,
       'cancelled'
     );
-    const completedPurchaseOrders = await this.loadPurchaseOrdersFromFile(
-      this.COMPLETED_PURCHASE_ORDERS_FILE_PATH,
+    const completedOrders = await this.loadOrdersFromFile(
+      this.COMPLETED_ORDERS_FILE_PATH,
       'completed'
     );
-    const confirmedPurchaseOrders = await this.loadPurchaseOrdersFromFile(
-      this.CONFIRMED_PURCHASE_ORDERS_FILE_PATH,
+    const confirmedOrders = await this.loadOrdersFromFile(
+      this.CONFIRMED_ORDERS_FILE_PATH,
       'confirmed'
     );
-    const deliveredPurchaseOrders = await this.loadPurchaseOrdersFromFile(
-      this.DELIVERED_PURCHASE_ORDERS_FILE_PATH,
+    const deliveredOrders = await this.loadOrdersFromFile(
+      this.DELIVERED_ORDERS_FILE_PATH,
       'delivered'
     );
-    const paidPurchaseOrders = await this.loadPurchaseOrdersFromFile(
-      this.PAID_PURCHASE_ORDERS_FILE_PATH,
+    const paidOrders = await this.loadOrdersFromFile(
+      this.PAID_ORDERS_FILE_PATH,
       'paid'
     );
-    const submittedPurchaseOrders = await this.loadPurchaseOrdersFromFile(
-      this.SUBMITTED_PURCHASE_ORDERS_FILE_PATH,
+    const submittedOrders = await this.loadOrdersFromFile(
+      this.SUBMITTED_ORDERS_FILE_PATH,
       'submitted'
     );
 
-    this._purchaseOrders = this.mergePurchaseOrders(
-      cancelledPurchaseOrders,
-      completedPurchaseOrders
-    );
-    this._purchaseOrders = this.mergePurchaseOrders(
-      this._purchaseOrders,
-      confirmedPurchaseOrders
-    );
-    this._purchaseOrders = this.mergePurchaseOrders(
-      this._purchaseOrders,
-      deliveredPurchaseOrders
-    );
-    this._purchaseOrders = this.mergePurchaseOrders(
-      this._purchaseOrders,
-      paidPurchaseOrders
-    );
-    this._purchaseOrders = this.mergePurchaseOrders(
-      this._purchaseOrders,
-      submittedPurchaseOrders
-    );
+    this._orders = this.mergeOrders(cancelledOrders, completedOrders);
+    this._orders = this.mergeOrders(this._orders, confirmedOrders);
+    this._orders = this.mergeOrders(this._orders, deliveredOrders);
+    this._orders = this.mergeOrders(this._orders, paidOrders);
+    this._orders = this.mergeOrders(this._orders, submittedOrders);
 
     this._isInitializedSignal.set(true);
   }
 
-  private mergePurchaseOrders(
-    first: PurchaseOrder[],
-    second: PurchaseOrder[]
-  ): PurchaseOrder[] {
-    const mergedPurchaseOrders = [...first];
+  private mergeOrders(first: Order[], second: Order[]): Order[] {
+    const mergedOrders = [...first];
 
     second.forEach(order => {
       let orderToAdd = order;
@@ -114,26 +100,26 @@ export class PurchaseOrdersService {
         );
       }
 
-      mergedPurchaseOrders.push(orderToAdd);
+      mergedOrders.push(orderToAdd);
     });
-    return mergedPurchaseOrders;
+    return mergedOrders;
   }
 
-  private async loadPurchaseOrdersFromFile(
+  private async loadOrdersFromFile(
     filePath: string,
-    status: PurchaseOrderStatus
-  ): Promise<PurchaseOrder[]> {
-    const rawPurchaseOrders = await this.csvService.loadCsvData(filePath);
+    status: OrderStatus
+  ): Promise<Order[]> {
+    const rawOrders = await this.csvService.loadCsvData(filePath);
 
-    const purchaseOrders: PurchaseOrder[] = rawPurchaseOrders
-      .map(order => this.extractPurchaseOrder(order))
-      .filter((order): order is PurchaseOrder => order !== null)
+    const orders: Order[] = rawOrders
+      .map(order => this.extractOrder(order))
+      .filter((order): order is Order => order !== null)
       // Remove duplicates id
       .filter((order, index, orders) => {
         const allOrdersWithSameId = orders.filter(o => o.id === order.id);
         const isDuplicate = allOrdersWithSameId.length > 1;
         if (isDuplicate) {
-          this.logError('Duplicate purchase order id found:', order.id);
+          this.logError('Duplicate order id found:', order.id);
         } else {
           return true;
         }
@@ -148,78 +134,66 @@ export class PurchaseOrdersService {
         return isNewestOrder && isFirstOrder;
       });
 
-    purchaseOrders.forEach(order => order.allStatuses.push(status));
+    orders.forEach(order => order.allStatuses.push(status));
 
-    return purchaseOrders;
+    return orders;
   }
 
-  private extractPurchaseOrder(
-    rawPurchaseOrder: Record<string, string>
-  ): PurchaseOrder | null {
-    const id = rawPurchaseOrder['Id'];
+  private extractOrder(rawOrder: Record<string, string>): Order | null {
+    const id = rawOrder['Id'];
     if (id === undefined || id === '') {
-      this.logError('Id is missing in purchase order', rawPurchaseOrder);
+      this.logError('Id is missing in order', rawOrder);
       return null;
     }
 
-    const number = rawPurchaseOrder['Number'];
+    const number = rawOrder['Number'];
     if (number === undefined) {
-      this.logError('Number is missing in purchase order', rawPurchaseOrder);
+      this.logError('Number is missing in order', rawOrder);
       return null;
     }
 
-    const rawDateAddedToSpreadsheet = rawPurchaseOrder['Timestamp'];
+    const rawDateAddedToSpreadsheet = rawOrder['Timestamp'];
     if (
       rawDateAddedToSpreadsheet === undefined ||
       rawDateAddedToSpreadsheet === ''
     ) {
-      this.logError('Timestamp is missing in purchase order', rawPurchaseOrder);
+      this.logError('Timestamp is missing in order', rawOrder);
       return null;
     }
     const dateAddedToSpreadsheet = new Date(rawDateAddedToSpreadsheet);
     if (isNaN(dateAddedToSpreadsheet.getTime())) {
-      this.logError('Timestamp is not a valid date', rawPurchaseOrder);
+      this.logError('Timestamp is not a valid date', rawOrder);
       return null;
     }
 
-    const rawDueDate = rawPurchaseOrder['Due date'];
+    const rawDueDate = rawOrder['Due date'];
     if (rawDueDate === undefined || rawDueDate === '') {
-      this.logError('Due date is missing in purchase order', rawPurchaseOrder);
+      this.logError('Due date is missing in order', rawOrder);
       return null;
     }
     const dueDate = new Date(rawDueDate);
     if (isNaN(dueDate.getTime())) {
-      this.logError('Due date is not a valid date', rawPurchaseOrder);
+      this.logError('Due date is not a valid date', rawOrder);
       return null;
     }
 
-    const rawUniqueItemsOrdered = rawPurchaseOrder['Uniq items ordered'];
+    const rawUniqueItemsOrdered = rawOrder['Uniq items ordered'];
     if (rawUniqueItemsOrdered === undefined || rawUniqueItemsOrdered === '') {
-      this.logError(
-        'Unique items ordered is missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Unique items ordered is missing in order', rawOrder);
       return null;
     }
     const uniqueItemsOrdered = Number(rawUniqueItemsOrdered);
     if (isNaN(uniqueItemsOrdered)) {
-      this.logError(
-        'Unique items ordered is not a valid number',
-        rawPurchaseOrder
-      );
+      this.logError('Unique items ordered is not a valid number', rawOrder);
       return null;
     }
 
-    const rawTotalAmountWithoutTaxes =
-      rawPurchaseOrder['Amount excluding taxes (CAD)'];
+    const rawTotalAmountWithoutTaxes = rawOrder['Amount excluding taxes (CAD)'];
     if (
       rawTotalAmountWithoutTaxes === undefined ||
       rawTotalAmountWithoutTaxes === ''
     ) {
-      this.logError(
-        'Total amount without taxes is missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Total amount without taxes is missing in order', rawOrder);
       return null;
     }
     const totalAmountWithoutTaxes = this.parseNumber(
@@ -228,69 +202,52 @@ export class PurchaseOrdersService {
     if (isNaN(totalAmountWithoutTaxes)) {
       this.logError(
         'Total amount without taxes is not a valid number',
-        rawPurchaseOrder
+        rawOrder
       );
       return null;
     }
 
-    const rawTotalAmountWithTaxes =
-      rawPurchaseOrder['Amount including taxes (CAD)'];
+    const rawTotalAmountWithTaxes = rawOrder['Amount including taxes (CAD)'];
     if (
       rawTotalAmountWithTaxes === undefined ||
       rawTotalAmountWithTaxes === ''
     ) {
-      this.logError(
-        'Total amount with taxes is missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Total amount with taxes is missing in order', rawOrder);
       return null;
     }
     const totalAmountWithTaxes = this.parseNumber(rawTotalAmountWithTaxes);
     if (isNaN(totalAmountWithTaxes)) {
-      this.logError(
-        'Total amount with taxes is not a valid number',
-        rawPurchaseOrder
-      );
+      this.logError('Total amount with taxes is not a valid number', rawOrder);
       return null;
     }
 
-    const allStatuses: PurchaseOrderStatus[] = [];
+    const allStatuses: OrderStatus[] = [];
 
-    const rawDistributionMode: string = rawPurchaseOrder['Distribution mode'];
+    const rawDistributionMode: string = rawOrder['Distribution mode'];
     if (rawDistributionMode === undefined || rawDistributionMode === '') {
-      this.logError(
-        'Distribution mode is missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Distribution mode is missing in order', rawOrder);
       return null;
     }
-    const distributionMode =
-      rawDistributionMode as PurchaseOrderDistributionMode;
-    if (!PURCHASE_ORDER_DISTRIBUTION_MODES.includes(distributionMode)) {
-      this.logError('Distribution mode is not valid', rawPurchaseOrder);
+    const distributionMode = rawDistributionMode as OrderDistributionMode;
+    if (!ORDER_DISTRIBUTION_MODES.includes(distributionMode)) {
+      this.logError('Distribution mode is not valid', rawOrder);
       return null;
     }
 
-    const rawDistributionDate = rawPurchaseOrder['Delivery date'];
+    const rawDistributionDate = rawOrder['Delivery date'];
     if (rawDistributionDate === undefined || rawDistributionDate === '') {
-      this.logError(
-        'Delivery date is missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Delivery date is missing in order', rawOrder);
       return null;
     }
     const distributionDate = new Date(rawDistributionDate);
     if (isNaN(distributionDate.getTime())) {
-      this.logError('Delivery date is not a valid date', rawPurchaseOrder);
+      this.logError('Delivery date is not a valid date', rawOrder);
       return null;
     }
 
-    const rawDeliveryFees = rawPurchaseOrder['Delivery fees (CAD)'];
+    const rawDeliveryFees = rawOrder['Delivery fees (CAD)'];
     if (rawDeliveryFees === undefined) {
-      this.logError(
-        'Delivery fees are missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Delivery fees are missing in order', rawOrder);
       return null;
     }
     let deliveryFees = Number(rawDeliveryFees);
@@ -298,12 +255,9 @@ export class PurchaseOrdersService {
       deliveryFees = 0;
     }
 
-    const rawDistanceToPickup = rawPurchaseOrder['Distance to pickup (km)'];
+    const rawDistanceToPickup = rawOrder['Distance to pickup (km)'];
     if (rawDistanceToPickup === undefined) {
-      this.logError(
-        'Distance to pickup is missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Distance to pickup is missing in order', rawOrder);
       return null;
     }
     let distanceToPickup = Number(rawDistanceToPickup);
@@ -314,7 +268,7 @@ export class PurchaseOrdersService {
       // TODO Compute using the cities
       // this.logError(
       //   'Distance to pickup is not a valid number',
-      //   rawPurchaseOrder
+      //   rawOrder
       // );
       // return null;
       distanceToPickup = 0;
@@ -322,38 +276,29 @@ export class PurchaseOrdersService {
       distanceToPickup = 0;
     }
 
-    const vendorOrganizationId = rawPurchaseOrder['Vendor organization id'];
+    const vendorOrganizationId = rawOrder['Vendor organization id'];
     if (vendorOrganizationId === undefined || vendorOrganizationId === '') {
-      this.logError(
-        'Vendor organization id is missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Vendor organization id is missing in order', rawOrder);
       return null;
     }
 
-    const rawIsCreatorLoggedIn = rawPurchaseOrder['Creator logged in'];
+    const rawIsCreatorLoggedIn = rawOrder['Creator logged in'];
     if (rawIsCreatorLoggedIn === undefined || rawIsCreatorLoggedIn === '') {
-      this.logError(
-        'Creator logged in is missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Creator logged in is missing in order', rawOrder);
       return null;
     }
     const isCreatorLoggedIn = rawIsCreatorLoggedIn === 'TRUE';
 
-    const creatorOrganizationId = rawPurchaseOrder['Creator organization id'];
+    const creatorOrganizationId = rawOrder['Creator organization id'];
     if (
       creatorOrganizationId === undefined ||
       (isCreatorLoggedIn && creatorOrganizationId === '')
     ) {
-      this.logError(
-        'Creator organization id is missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Creator organization id is missing in order', rawOrder);
       return null;
     }
 
-    let buyerOrganizationId = rawPurchaseOrder['Buyer organization id'];
+    let buyerOrganizationId = rawOrder['Buyer organization id'];
     if (
       buyerOrganizationId === undefined ||
       (isCreatorLoggedIn &&
@@ -361,17 +306,14 @@ export class PurchaseOrdersService {
         (creatorOrganizationId === '' ||
           creatorOrganizationId === buyerOrganizationId))
     ) {
-      this.logError(
-        'Buyer organization id is missing in purchase order',
-        rawPurchaseOrder
-      );
+      this.logError('Buyer organization id is missing in order', rawOrder);
       return null;
     }
     if (isCreatorLoggedIn && buyerOrganizationId === '') {
       buyerOrganizationId = creatorOrganizationId;
     }
 
-    const purchaseOrder: PurchaseOrder = {
+    const order: Order = {
       id,
       number,
       dateAddedToSpreadsheet,
@@ -390,7 +332,7 @@ export class PurchaseOrdersService {
       isCreatorLoggedIn,
     };
 
-    return purchaseOrder;
+    return order;
   }
 
   private parseNumber(rawNumber: string): number {
