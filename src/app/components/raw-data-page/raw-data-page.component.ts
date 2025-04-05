@@ -5,8 +5,8 @@ import { Order } from '../../models/orders.model';
 import { Organization } from '../../models/organizations.model';
 import { OrdersService } from '../../services/orders.service';
 import { OrganizationsService } from '../../services/organizations.service';
+import { OrdersTableComponent } from '../orders-table/orders-table.component';
 import { OrganizationsTableComponent } from '../organizations-table/organizations-table.component';
-import { OrdersTableComponent } from '../purchase-orders-table/orders-table.component';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
 
 @Component({
