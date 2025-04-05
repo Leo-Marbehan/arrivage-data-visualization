@@ -1,4 +1,5 @@
 import { Injectable, signal, WritableSignal } from '@angular/core';
+import { environment } from '../environment';
 import {
   BuyerOrganization,
   Language,
@@ -83,10 +84,14 @@ export class OrganizationsService {
         })
         .filter((vendor): vendor is VendorOrganization => vendor !== null)
         // Remove duplicates id
-        .filter(
-          (vendor, index, vendors) =>
-            vendors.findIndex(v => v.id === vendor.id) === index
-        )
+        .filter((vendor, index, vendors) => {
+          const isDuplicate =
+            vendors.findIndex(v => v.id === vendor.id) !== index;
+          if (isDuplicate) {
+            this.logError('Duplicate vendor id found:', vendor.id);
+          }
+          return !isDuplicate;
+        })
     );
   }
 
@@ -102,10 +107,14 @@ export class OrganizationsService {
         })
         .filter((buyerPro): buyerPro is BuyerOrganization => buyerPro !== null)
         // Remove duplicates id
-        .filter(
-          (buyerPro, index, buyers) =>
-            buyers.findIndex(b => b.id === buyerPro.id) === index
-        )
+        .filter((buyerPro, index, buyers) => {
+          const isDuplicate =
+            buyers.findIndex(b => b.id === buyerPro.id) !== index;
+          if (isDuplicate) {
+            this.logError('Duplicate buyer pro id found:', buyerPro.id);
+          }
+          return !isDuplicate;
+        })
     );
   }
 
@@ -128,10 +137,14 @@ export class OrganizationsService {
             buyerNotPro !== null
         )
         // Remove duplicates id
-        .filter(
-          (buyerNotPro, index, buyers) =>
-            buyers.findIndex(b => b.id === buyerNotPro.id) === index
-        )
+        .filter((buyerNotPro, index, buyers) => {
+          const isDuplicate =
+            buyers.findIndex(b => b.id === buyerNotPro.id) !== index;
+          if (isDuplicate) {
+            this.logError('Duplicate buyer not pro id found:', buyerNotPro.id);
+          }
+          return !isDuplicate;
+        })
     );
   }
 
@@ -157,7 +170,7 @@ export class OrganizationsService {
         try {
           productCategories.push(mapVendorProductCategory(rawCategory));
         } catch (_error) {
-          console.error(
+          this.logError(
             `Vendor product category ${rawCategory} is invalid for index`,
             index
           );
@@ -190,14 +203,14 @@ export class OrganizationsService {
 
     const rawCategory = rawBuyerOrganization['org_cat'];
     if (rawCategory === undefined || rawCategory === '') {
-      console.error(type, 'category is missing for index', index);
+      this.logError(type, 'category is missing for index', index);
       return null;
     }
     let category;
     try {
       category = mapBuyerOrganizationCategory(rawCategory);
     } catch (_error) {
-      console.error(type, 'category is invalid for index', index);
+      this.logError(type, 'category is invalid for index', index);
       return null;
     }
 
@@ -217,58 +230,58 @@ export class OrganizationsService {
   ): Organization | null {
     const id = rawOrganization['unique_id'];
     if (id === undefined || id === '') {
-      console.error(type, 'id is missing for index', index);
+      this.logError(type, 'id is missing for index', index);
       return null;
     }
 
     const language: Language = rawOrganization['lang'] as Language;
     if (language === undefined || (language as string) === '') {
-      console.error(type, 'language is missing for index', index);
+      this.logError(type, 'language is missing for index', index);
       return null;
     }
     if (language !== 'fr' && language !== 'en') {
-      console.error(type, 'language is invalid for index', index);
+      this.logError(type, 'language is invalid for index', index);
       return null;
     }
 
     const country = rawOrganization['country'];
     if (country === undefined || country === '') {
-      console.error(type, 'country is missing for index', index);
+      this.logError(type, 'country is missing for index', index);
       return null;
     }
 
     const province = rawOrganization['province'];
     if (province === undefined || province === '') {
-      console.error(type, 'province is missing for index', index);
+      this.logError(type, 'province is missing for index', index);
       return null;
     }
 
     const region = rawOrganization['region'];
     if (region === undefined || region === '') {
-      console.error(type, 'region is missing for index', index);
+      this.logError(type, 'region is missing for index', index);
       return null;
     }
 
     const subRegion = rawOrganization['sous-region'];
     if (subRegion === undefined || subRegion === '') {
-      console.error(type, 'sub region is missing for index', index);
+      this.logError(type, 'sub region is missing for index', index);
       return null;
     }
 
     const city = rawOrganization['city'];
     if (city === undefined || city === '') {
-      console.error(type, 'city is missing for index', index);
+      this.logError(type, 'city is missing for index', index);
       return null;
     }
 
     const rawCreationTimestamp = rawOrganization['timestamp_creation'];
     if (rawCreationTimestamp === undefined || rawCreationTimestamp === '') {
-      console.error(type, 'creation timestamp is missing for index', index);
+      this.logError(type, 'creation timestamp is missing for index', index);
       return null;
     }
     const creationTimestamp = new Date(rawCreationTimestamp);
     if (isNaN(creationTimestamp.getTime())) {
-      console.error(type, 'creation timestamp is invalid for index', index);
+      this.logError(type, 'creation timestamp is invalid for index', index);
       return null;
     }
 
@@ -284,5 +297,11 @@ export class OrganizationsService {
     };
 
     return organization;
+  }
+
+  private logError(...args: unknown[]): void {
+    if (!environment.production) {
+      console.error(...args);
+    }
   }
 }
