@@ -81,26 +81,28 @@ export class OrdersService {
     const mergedOrders = [...first];
 
     second.forEach(order => {
-      let orderToAdd = order;
-
+      // Find if the order already exists in the first array
       const existingOrder = first.find(o => o.id === order.id);
+
       if (existingOrder) {
+        const allStatuses = Array.from(
+          new Set([...existingOrder.allStatuses, ...order.allStatuses])
+        );
+
         // Keep the most recent order
         if (
           order.dateAddedToSpreadsheet > existingOrder.dateAddedToSpreadsheet
         ) {
-          orderToAdd = order;
+          order.allStatuses = allStatuses;
+          mergedOrders.splice(mergedOrders.indexOf(existingOrder), 1, order);
         } else {
-          orderToAdd = existingOrder;
+          existingOrder.allStatuses = allStatuses;
         }
 
-        // Merge statuses
-        orderToAdd.allStatuses = Array.from(
-          new Set([...orderToAdd.allStatuses, ...existingOrder.allStatuses])
-        );
+        return;
       }
 
-      mergedOrders.push(orderToAdd);
+      mergedOrders.push(order);
     });
     return mergedOrders;
   }

@@ -2,6 +2,9 @@
 
 <!-- TODO Filters -->
 
+@let sortedOrganizations = sortedOrganizationsSignal();
+@let slicedOrganizations = slicedOrganizationsSignal();
+
 <section class="flex-column table">
   <!-- MARK: Headers
   -->
@@ -87,7 +90,7 @@
 
   <!-- MARK: Rows
   -->
-  @for (organization of sortedOrganizationsSignal(); track organization.id) {
+  @for (organization of slicedOrganizations; track organization.id) {
     <mat-divider />
     @defer (on viewport; prefetch on idle) {
       <div class="flex-row align-cross-center gap-0-5-rem">
@@ -150,6 +153,12 @@
     }
   }
 </section>
+
+<mat-paginator
+  [length]="sortedOrganizations.length"
+  [pageSize]="INITIAL_PAGE_SIZE"
+  [pageSizeOptions]="PAGE_SIZE_OPTIONS"
+  (page)="onPageChange($event)" />
 
 <!-- Header template
 -->

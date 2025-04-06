@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   Order,
@@ -26,17 +27,21 @@ type SortColumn = keyof Omit<Order, 'allStatuses'>;
     MatTooltipModule,
     MatIconModule,
     NgTemplateOutlet,
+    MatPaginatorModule,
   ],
   templateUrl: './orders-table.component.html',
   styleUrl: './orders-table.component.scss',
 })
 export class OrdersTableComponent {
+  readonly PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 200, 500];
+  readonly INITIAL_PAGE_SIZE = 10;
+
   readonly ordersInputSignal: InputSignal<Order[]> = input.required({
     alias: 'orders',
   });
 
   readonly sortedOrdersSignal: Signal<Order[]> = computed(() => {
-    const orders = this.ordersInputSignal();
+    const orders = [...this.ordersInputSignal()];
     const sort = this.sortSignal();
     if (sort === null) {
       return orders;
@@ -83,6 +88,20 @@ export class OrdersTableComponent {
     }
   });
 
+  private readonly pageIndexSignal: WritableSignal<number> = signal(0);
+  private readonly pageSizeSignal: WritableSignal<number> = signal(
+    this.INITIAL_PAGE_SIZE
+  );
+
+  readonly slicedOrdersSignal: Signal<Order[]> = computed(() => {
+    const orders = this.sortedOrdersSignal();
+    const pageIndex = this.pageIndexSignal();
+    const pageSize = this.pageSizeSignal();
+    const startIndex = pageIndex * pageSize;
+    const endIndex = startIndex + pageSize;
+    return orders.slice(startIndex, endIndex);
+  });
+
   readonly sortSignal: WritableSignal<{
     column: SortColumn;
     direction: 'asc' | 'desc';
@@ -108,6 +127,11 @@ export class OrdersTableComponent {
 
   getDistributionMode(order: Order): string {
     return translateOrderDistributionMode(order.distributionMode);
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageIndexSignal.set(event.pageIndex);
+    this.pageSizeSignal.set(event.pageSize);
   }
 
   cssClassToSortColumn(column: string): SortColumn {

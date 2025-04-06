@@ -81,3 +81,7 @@ mat-divider {
   // See https://github.com/angular/flex-layout/wiki/Responsive-API for more information.
   min-width: calc(1920px - 2 * 2rem);
 }
+
+mat-paginator {
+  background-color: transparent;
+}

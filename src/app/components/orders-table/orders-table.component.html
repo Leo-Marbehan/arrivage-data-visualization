@@ -2,6 +2,9 @@
 
 <!-- TODO Filters -->
 
+@let sortedOrders = sortedOrdersSignal();
+@let slicedOrders = slicedOrdersSignal();
+
 <section class="flex-column table">
   <!-- MARK: Headers
   -->
@@ -123,7 +126,7 @@
 
   <!-- MARK: Rows
   -->
-  @for (order of sortedOrdersSignal(); track order.id) {
+  @for (order of slicedOrders; track order.id) {
     <mat-divider />
     @defer (on viewport; prefetch on idle) {
       <div class="flex-row align-cross-center gap-0-5-rem">
@@ -207,6 +210,12 @@
     }
   }
 </section>
+
+<mat-paginator
+  [length]="sortedOrders.length"
+  [pageSize]="INITIAL_PAGE_SIZE"
+  [pageSizeOptions]="PAGE_SIZE_OPTIONS"
+  (page)="onPageChange($event)" />
 
 <!-- Header template
 -->
