@@ -10,11 +10,7 @@
   </p>
 
   @let view = viewSignal();
-  <button
-    mat-raised-button
-    color="primary"
-    disabled
-    (click)="onToggleViewButtonClick()">
+  <button mat-raised-button color="primary" (click)="onToggleViewButtonClick()">
     <mat-icon>swap_horiz</mat-icon>
     {{
       view === 'organizations' ? 'Voir les commandes' : 'Voir les organisations'
@@ -26,8 +22,8 @@
       @case ('organizations') {
         <app-organizations-table [organizations]="organizations" />
       }
-      @case ('purchaseOrders') {
-        <!-- TODO -->
+      @case ('orders') {
+        <app-orders-table [orders]="orders" />
       }
     }
   </section>

@@ -1,0 +1,245 @@
+<h2>Commande</h2>
+
+<!-- TODO Filters -->
+
+@let sortedOrders = sortedOrdersSignal();
+@let slicedOrders = slicedOrdersSignal();
+
+<section class="flex-column table">
+  <!-- MARK: Headers
+  -->
+  <div class="flex-row align-cross-center header gap-0-5-rem">
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'id',
+        text: 'ID',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'number',
+        text: 'Numéro',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'date-added-to-spreadsheet',
+        text: 'Dernière mise à jour',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'due-date',
+        text: 'Date d\'échéance',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'unique-items-ordered',
+        text: 'Nombre d\'articles uniques',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'total-amount-without-taxes',
+        text: 'Montant total (sans taxes)',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'total-amount-with-taxes',
+        text: 'Montant total (avec taxes)',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'all-statuses',
+        text: 'Statuts',
+        canSort: false,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'distribution-mode',
+        text: 'Mode de distribution',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'distribution-date',
+        text: 'Date de distribution',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'delivery-fees',
+        text: 'Frais de livraison',
+        canSort: true,
+      }"></ng-container>
+    <!-- TODO Change for distance computed from the cities -->
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'distance-to-pickup',
+        text: 'Distance jusqu\'au point de ramassage',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'vendor-organization-id',
+        text: 'ID de l\'organisation du vendeur',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'buyer-organization-id',
+        text: 'ID de l\'organisation de l\'acheteur',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'creator-organization-id',
+        text: 'ID de l\'organisation du créateur',
+        canSort: true,
+      }"></ng-container>
+    <ng-container
+      [ngTemplateOutlet]="header"
+      [ngTemplateOutletContext]="{
+        column: 'is-creator-logged-in',
+        text: 'Créateur connecté',
+        canSort: true,
+      }"></ng-container>
+  </div>
+
+  <!-- MARK: Rows
+  -->
+  @for (order of slicedOrders; track order.id) {
+    <mat-divider />
+    @defer (on viewport; prefetch on idle) {
+      <div class="flex-row align-cross-center gap-0-5-rem">
+        <span class="cell id" [matTooltip]="order.id">{{ order.id }}</span>
+        <span class="cell number" [matTooltip]="order.number">{{
+          order.number
+        }}</span>
+        <span
+          class="cell date-added-to-spreadsheet"
+          [matTooltip]="order.dateAddedToSpreadsheet.toLocaleDateString()"
+          >{{ order.dateAddedToSpreadsheet.toLocaleDateString() }}</span
+        >
+        <span
+          class="cell due-date"
+          [matTooltip]="order.dueDate.toLocaleDateString()"
+          >{{ order.dueDate.toLocaleDateString() }}</span
+        >
+        <span
+          class="cell unique-items-ordered"
+          [matTooltip]="order.uniqueItemsOrdered.toString()"
+          >{{ order.uniqueItemsOrdered }}</span
+        >
+        <span
+          class="cell total-amount-without-taxes"
+          [matTooltip]="order.totalAmountWithoutTaxes.toString()"
+          >{{ order.totalAmountWithoutTaxes }}</span
+        >
+        <span
+          class="cell total-amount-with-taxes"
+          [matTooltip]="order.totalAmountWithTaxes.toString()"
+          >{{ order.totalAmountWithTaxes }}</span
+        >
+
+        @let statuses = getStatuses(order);
+        <span class="cell all-statuses" [matTooltip]="statuses">{{
+          statuses
+        }}</span>
+
+        @let distributionMode = getDistributionMode(order);
+        <span class="cell distribution-mode" [matTooltip]="distributionMode">{{
+          distributionMode
+        }}</span>
+        <span
+          class="cell distribution-date"
+          [matTooltip]="order.distributionDate.toLocaleDateString()"
+          >{{ order.distributionDate.toLocaleDateString() }}</span
+        >
+        <span
+          class="cell delivery-fees"
+          [matTooltip]="order.deliveryFees.toString()"
+          >{{ order.deliveryFees }}</span
+        >
+        <span
+          class="cell distance-to-pickup"
+          [matTooltip]="order.distanceToPickup.toString()"
+          >{{ order.distanceToPickup }}</span
+        >
+        <span
+          class="cell vendor-organization-id"
+          [matTooltip]="order.vendorOrganizationId"
+          >{{ order.vendorOrganizationId }}</span
+        >
+        <span
+          class="cell buyer-organization-id"
+          [matTooltip]="order.buyerOrganizationId"
+          >{{ order.buyerOrganizationId }}</span
+        >
+        <span
+          class="cell creator-organization-id"
+          [matTooltip]="order.creatorOrganizationId"
+          >{{ order.creatorOrganizationId }}</span
+        >
+        <span
+          class="cell is-creator-logged-in"
+          [matTooltip]="order.isCreatorLoggedIn.toString()"
+          >{{ order.isCreatorLoggedIn }}</span
+        >
+      </div>
+    } @placeholder {
+      <div class="cell"></div>
+    }
+  }
+</section>
+
+<mat-paginator
+  [length]="sortedOrders.length"
+  [pageSize]="INITIAL_PAGE_SIZE"
+  [pageSizeOptions]="PAGE_SIZE_OPTIONS"
+  (page)="onPageChange($event)" />
+
+<!-- Header template
+-->
+<ng-template #header let-column="column" let-text="text" let-canSort="canSort">
+  @if (canSort) {
+    @let sortColumn = cssClassToSortColumn(column);
+    @let currentSort = sortSignal();
+    <span
+      class="cell interactive {{ column }}"
+      tabindex="0"
+      [matTooltip]="text"
+      (click)="canSort ? sort(sortColumn) : null"
+      (keydown)="canSort ? sort(sortColumn) : null">
+      <span>{{ text }}</span>
+
+      @if (currentSort === null || currentSort.column !== sortColumn) {
+        <mat-icon class="hidden">arrow_upward</mat-icon>
+      } @else if (currentSort.direction === 'asc') {
+        <mat-icon>arrow_upward</mat-icon>
+      } @else {
+        <mat-icon>arrow_downward</mat-icon>
+      }
+    </span>
+  } @else {
+    <span class="cell {{ column }}" [matTooltip]="text">{{ text }}</span>
+  }
+</ng-template>

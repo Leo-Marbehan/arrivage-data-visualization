@@ -46,23 +46,28 @@
   }
 }
 
-.language,
-.country,
-.province,
-.creation-timestamp,
-.is-pro {
-  flex: 0.75;
-}
-
-.region,
-.sub-region,
-.city,
-.buyer-organization-category {
+.number,
+.date-added-to-spreadsheet,
+.due-date,
+.all-statuses,
+.distribution-mode,
+.distribution-date {
   flex: 1;
 }
 
+.unique-items-ordered,
+.total-amount-without-taxes,
+.total-amount-with-taxes,
+.is-creator-logged-in,
+.delivery-fees,
+.distance-to-pickup {
+  flex: 0.75;
+}
+
 .id,
-.product-categories {
+.vendor-organization-id,
+.buyer-organization-id,
+.creator-organization-id {
   flex: 1.5;
 }
 
@@ -71,10 +76,10 @@ mat-divider {
 }
 
 .table {
-  // The table should be at least 1280px wide, including the padding.
-  // This matches the minimum width of a large screen.
+  // The table should be at least 1920px wide, including the padding.
+  // This matches the maximum width of a large screen.
   // See https://github.com/angular/flex-layout/wiki/Responsive-API for more information.
-  min-width: calc(1280px - 2 * 2rem);
+  min-width: calc(1920px - 2 * 2rem);
 }
 
 mat-paginator {

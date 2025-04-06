@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   BuyerOrganization,
@@ -21,17 +22,10 @@ import {
   VendorOrganization,
 } from '../../models/organizations.model';
 
-export type SortColumn =
-  | 'id'
-  | 'language'
-  | 'country'
-  | 'province'
-  | 'region'
-  | 'subRegion'
-  | 'city'
-  | 'creationTimestamp'
-  | 'buyerOrganizationCategory'
-  | 'isPro';
+type SortColumn = keyof Omit<
+  VendorOrganization & BuyerOrganization,
+  'productCategories'
+>;
 
 @Component({
   selector: 'app-organizations-table',
@@ -40,20 +34,24 @@ export type SortColumn =
     MatTooltipModule,
     MatIconModule,
     NgTemplateOutlet,
+    MatPaginatorModule,
   ],
   templateUrl: './organizations-table.component.html',
   styleUrl: './organizations-table.component.scss',
 })
 export class OrganizationsTableComponent {
+  readonly PAGE_SIZE_OPTIONS = [10, 25, 50, 100, 200, 500];
+  readonly INITIAL_PAGE_SIZE = 10;
+
   readonly organizationsInputSignal: InputSignal<Organization[]> =
     input.required({
       alias: 'organizations',
     });
 
   readonly sortedOrganizationsSignal: Signal<Organization[]> = computed(() => {
-    const organizations = this.organizationsInputSignal();
+    const organizations = [...this.organizationsInputSignal()];
     const sort = this.sortSignal();
-    if (!sort) {
+    if (sort === null) {
       return organizations;
     }
 
@@ -61,40 +59,24 @@ export class OrganizationsTableComponent {
 
     switch (sort.column) {
       case 'id':
-        return organizations.sort(
-          (a, b) => a.id.localeCompare(b.id) * multiplier
-        );
       case 'language':
-        return organizations.sort(
-          (a, b) => a.language.localeCompare(b.language) * multiplier
-        );
       case 'country':
-        return organizations.sort(
-          (a, b) => a.country.localeCompare(b.country) * multiplier
-        );
       case 'province':
-        return organizations.sort(
-          (a, b) => a.province.localeCompare(b.province) * multiplier
-        );
       case 'region':
-        return organizations.sort(
-          (a, b) => a.region.localeCompare(b.region) * multiplier
-        );
       case 'subRegion':
-        return organizations.sort(
-          (a, b) => a.subRegion.localeCompare(b.subRegion) * multiplier
-        );
       case 'city':
-        return organizations.sort(
-          (a, b) => a.city.localeCompare(b.city) * multiplier
-        );
+        return organizations.sort((a, b) => {
+          const aValue: string = a[sort.column as keyof Organization] as string;
+          const bValue: string = b[sort.column as keyof Organization] as string;
+          return aValue.localeCompare(bValue) * multiplier;
+        });
       case 'creationTimestamp':
         return organizations.sort(
           (a, b) =>
             (a.creationTimestamp.getTime() - b.creationTimestamp.getTime()) *
             multiplier
         );
-      case 'buyerOrganizationCategory':
+      case 'category':
         return organizations.sort((a, b) => {
           const aCategory = isBuyerOrganization(a) ? a.category : '';
           const bCategory = isBuyerOrganization(b) ? b.category : '';
@@ -107,6 +89,20 @@ export class OrganizationsTableComponent {
           return (aIsPro === bIsPro ? 0 : aIsPro ? 1 : -1) * multiplier;
         });
     }
+  });
+
+  private readonly pageIndexSignal: WritableSignal<number> = signal(0);
+  private readonly pageSizeSignal: WritableSignal<number> = signal(
+    this.INITIAL_PAGE_SIZE
+  );
+
+  readonly slicedOrganizationsSignal: Signal<Organization[]> = computed(() => {
+    const organizations = this.sortedOrganizationsSignal();
+    const pageIndex = this.pageIndexSignal();
+    const pageSize = this.pageSizeSignal();
+    const startIndex = pageIndex * pageSize;
+    const endIndex = startIndex + pageSize;
+    return organizations.slice(startIndex, endIndex);
   });
 
   readonly sortSignal: WritableSignal<{
@@ -144,26 +140,26 @@ export class OrganizationsTableComponent {
     });
   }
 
+  onPageChange(event: PageEvent): void {
+    this.pageIndexSignal.set(event.pageIndex);
+    this.pageSizeSignal.set(event.pageSize);
+  }
+
   cssClassToSortColumn(column: string): SortColumn {
     switch (column) {
       case 'id':
-        return 'id';
       case 'language':
-        return 'language';
       case 'country':
-        return 'country';
       case 'province':
-        return 'province';
       case 'region':
-        return 'region';
+      case 'city':
+        return column as SortColumn;
       case 'sub-region':
         return 'subRegion';
-      case 'city':
-        return 'city';
       case 'creation-timestamp':
         return 'creationTimestamp';
       case 'buyer-organization-category':
-        return 'buyerOrganizationCategory';
+        return 'category';
       case 'is-pro':
         return 'isPro';
       default:
