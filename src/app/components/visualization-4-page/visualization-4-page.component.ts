@@ -4,10 +4,10 @@ import { ToolbarComponent } from '../toolbar/toolbar.component';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-visualization-page',
+  selector: 'app-visualization-4-page',
   standalone: true,
   imports: [CommonModule, ToolbarComponent, OrderVisualizationChartComponent],
-  templateUrl: './visualization-page.component.html',
-  styleUrl: './visualization-page.component.scss',
+  templateUrl: './visualization-4-page.component.html',
+  styleUrl: './visualization-4-page.component.scss',
 })
 export class VisualizationFourPageComponent {}
