@@ -10,4 +10,4 @@ import { CommonModule } from '@angular/common';
   templateUrl: './visualization-page.component.html',
   styleUrl: './visualization-page.component.scss',
 })
-export class VisualizationPageComponent {}
+export class VisualizationFourPageComponent {}
