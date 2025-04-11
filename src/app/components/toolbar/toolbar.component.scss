@@ -1,1 +1,20 @@
 @use '../../styles/flex.styles.scss';
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.gap-0-5-rem {
+  gap: 0.5rem;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+}
