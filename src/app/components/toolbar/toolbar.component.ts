@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-toolbar',
+  standalone: true,
   imports: [MatButtonModule, MatIconModule, MatToolbarModule],
   templateUrl: './toolbar.component.html',
   styleUrl: './toolbar.component.scss',
@@ -19,5 +20,9 @@ export class ToolbarComponent {
 
   async navigateToRawData() {
     await this.router.navigate(['raw-data']);
+  }
+  
+  async navigateToVisualization4() {
+    await this.router.navigate(['visualization-4']);
   }
 }

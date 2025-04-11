@@ -14,4 +14,8 @@ export class HomePageComponent {
   async navigateToRawData() {
     await this.router.navigate(['raw-data']);
   }
+  
+  async navigateToVisualization4() {
+    await this.router.navigate(['visualization-4']);
+  }
 }
