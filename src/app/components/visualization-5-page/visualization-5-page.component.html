@@ -11,8 +11,17 @@
   
   <div class="visualization-section">
     <div class="controls">
+      <p class="controls-title">
+        Inclure les commandes contenant:
+      </p>
       @for (filter of categoryFilters; track $index) {
-        <mat-checkbox [checked]="filter.displayed" (change)="toggleFilter(filter, $event.checked)">{{filter.name}}</mat-checkbox>
+        <mat-checkbox
+          class="checkbox"
+          [checked]="filter.displayed"
+          (change)="toggleFilter(filter, $event.checked)"
+        >
+          {{filter.name}}
+        </mat-checkbox>
       }
     </div>
     <div #chart></div>

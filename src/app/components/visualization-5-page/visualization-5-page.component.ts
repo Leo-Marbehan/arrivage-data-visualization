@@ -203,8 +203,8 @@ export class VisualizationFivePageComponent
   private drawChart() {
     const containerWidth =
       this.chartContainer.nativeElement.getBoundingClientRect().width;
-    const containerHeight = 500;
-    const margin = { top: 20, right: 130, bottom: 30, left: 230 };
+    const containerHeight = 550;
+    const margin = { top: 20, right: 130, bottom: 30, left: 250 };
     const width = containerWidth - margin.left - margin.right;
     const height = containerHeight - margin.top - margin.bottom;
 

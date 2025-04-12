@@ -33,4 +33,21 @@
   position: absolute;
   display: flex;
   flex-direction: column;
+  margin: 10px;
+}
+
+.controls-title {
+  width: 170px;
+  margin-bottom: 5px;
+  margin-left: 5px;
+}
+
+.checkbox {
+  height: 30px;
+}
+
+::ng-deep .mat-mdc-checkbox-ripple,
+::ng-deep .mat-mdc-checkbox .mdc-checkbox__ripple {
+  margin: 6px;
+  border-radius: 10px;
 }
