@@ -75,9 +75,9 @@ export class VisualizationFivePageComponent
     private ordersService: OrdersService,
     private organizationsService: OrganizationsService
   ) {
-    this.categoryFilters = this.createFilters(['non-food-products']);
+    this.categoryFilters = this.createFilters();
     this.data = this.attachCategoriesToOrderDates(
-      this.ordersService.orders,
+      this.cropDateRange(this.ordersService.orders),
       this.organizationsService.vendorOrganizations
     );
     this.groupedData = this.groupByMonth(this.groupByCategory(this.data));
@@ -98,16 +98,22 @@ export class VisualizationFivePageComponent
     this.drawChart();
   }
 
-  private createFilters(excludedCategories: VendorProductCategory[]): Filter[] {
-    return VENDOR_PRODUCT_CATEGORIES.filter(
-      category => !excludedCategories.includes(category)
-    ).map(category => {
+  private createFilters(): Filter[] {
+    return VENDOR_PRODUCT_CATEGORIES.map(category => {
       return {
         category,
         name: translateVendorProductCategory(category),
         displayed: true,
       };
     });
+  }
+
+  private cropDateRange(orders: Order[]): Order[] {
+    return orders.filter(
+      order =>
+        order.distributionDate.getTime() >= new Date(2021, 3).getTime() && // Min: April 2021
+        order.distributionDate.getTime() <= new Date(2025, 1).getTime() // Max: February 2025
+    );
   }
 
   private attachCategoriesToOrderDates(
@@ -299,6 +305,7 @@ export class VisualizationFivePageComponent
       .attr('x', xScale(lastMonth.date) + 10)
       .attr('y', yScale(lastMonth.nbOrders) + 4)
       .style('font-size', 14)
+      .attr('fill', color)
       .text(name);
   }
 
