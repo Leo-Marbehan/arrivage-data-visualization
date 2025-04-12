@@ -10,6 +10,11 @@
   </div>
   
   <div class="visualization-section">
+    <div class="controls">
+      @for (filter of categoryFilters; track $index) {
+        <mat-checkbox [checked]="filter.displayed" (change)="toggleFilter(filter, $event.checked)">{{filter.name}}</mat-checkbox>
+      }
+    </div>
     <div #chart></div>
   </div>
 </div>

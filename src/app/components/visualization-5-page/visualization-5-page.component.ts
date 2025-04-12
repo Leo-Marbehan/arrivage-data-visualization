@@ -1,4 +1,10 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewChecked,
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
 import * as d3 from 'd3';
 import { OrdersService } from '../../services/orders.service';
@@ -10,6 +16,13 @@ import {
   VendorProductCategory,
 } from '../../models/organizations.model';
 import { Order } from '../../models/orders.model';
+import { MatCheckbox } from '@angular/material/checkbox';
+
+interface Filter {
+  category: VendorProductCategory;
+  name: string;
+  displayed: boolean;
+}
 
 interface ChartData {
   date: Date;
@@ -34,11 +47,14 @@ interface MonthData {
 @Component({
   selector: 'app-visualization-5-page',
   standalone: true,
-  imports: [ToolbarComponent],
+  imports: [ToolbarComponent, MatCheckbox],
   templateUrl: './visualization-5-page.component.html',
   styleUrl: './visualization-5-page.component.scss',
 })
-export class VisualizationFivePageComponent implements OnInit {
+export class VisualizationFivePageComponent
+  implements OnInit, AfterViewChecked
+{
+  categoryFilters: Filter[];
   @ViewChild('chart', { static: true })
   private chartContainer!: ElementRef<HTMLDivElement>;
   private readonly data: ChartData[];
@@ -46,10 +62,20 @@ export class VisualizationFivePageComponent implements OnInit {
   private filteredCategories: CategoryData[] = [];
   private filteredTotal: MonthData[] = [];
 
+  get displayedCategories(): VendorProductCategory[] {
+    return this.categoryFilters.reduce((displayedCategories, filter) => {
+      if (filter.displayed) {
+        displayedCategories.push(filter.category);
+      }
+      return displayedCategories;
+    }, [] as VendorProductCategory[]);
+  }
+
   constructor(
     private ordersService: OrdersService,
     private organizationsService: OrganizationsService
   ) {
+    this.categoryFilters = this.createFilters(['non-food-products']);
     this.data = this.attachCategoriesToOrderDates(
       this.ordersService.orders,
       this.organizationsService.vendorOrganizations
@@ -57,10 +83,31 @@ export class VisualizationFivePageComponent implements OnInit {
     this.groupedData = this.groupByMonth(this.groupByCategory(this.data));
     this.filterData();
   }
+  ngAfterViewChecked(): void {
+    this.drawChart();
+  }
 
   ngOnInit(): void {
     d3.select(window).on('resize', this.drawChart.bind(this));
     this.drawChart();
+  }
+
+  toggleFilter(filter: Filter, displayed: boolean) {
+    filter.displayed = displayed;
+    this.filterData();
+    this.drawChart();
+  }
+
+  private createFilters(excludedCategories: VendorProductCategory[]): Filter[] {
+    return VENDOR_PRODUCT_CATEGORIES.filter(
+      category => !excludedCategories.includes(category)
+    ).map(category => {
+      return {
+        category,
+        name: translateVendorProductCategory(category),
+        displayed: true,
+      };
+    });
   }
 
   private attachCategoriesToOrderDates(
@@ -125,14 +172,15 @@ export class VisualizationFivePageComponent implements OnInit {
   }
 
   private filterData(): void {
-    const displayedCategories = VENDOR_PRODUCT_CATEGORIES;
     this.filteredCategories = this.groupedData.filter(category =>
-      displayedCategories.includes(category.name)
+      this.displayedCategories.includes(category.name)
     );
     this.filteredTotal = Array.from(
       d3
         .group(
-          this.data,
+          this.data.filter(d =>
+            this.hasIntersection(d.categories, this.displayedCategories)
+          ),
           order => new Date(order.date.getFullYear(), order.date.getMonth())
         )
         .entries()
@@ -150,7 +198,7 @@ export class VisualizationFivePageComponent implements OnInit {
     const containerWidth =
       this.chartContainer.nativeElement.getBoundingClientRect().width;
     const containerHeight = 500;
-    const margin = { top: 20, right: 80, bottom: 30, left: 50 };
+    const margin = { top: 20, right: 80, bottom: 30, left: 100 };
     const width = containerWidth - margin.left - margin.right;
     const height = containerHeight - margin.top - margin.bottom;
 
@@ -204,7 +252,9 @@ export class VisualizationFivePageComponent implements OnInit {
         yScale
       )
     );
-    this.drawLine('Total', 'black', this.filteredTotal, xScale, yScale);
+    if (this.filteredTotal.length > 0) {
+      this.drawLine('Total', 'black', this.filteredTotal, xScale, yScale);
+    }
   }
 
   private drawLine(
@@ -250,5 +300,9 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('y', yScale(lastMonth.nbOrders) + 4)
       .style('font-size', 14)
       .text(name);
+  }
+
+  private hasIntersection(a: string[], b: string[]): boolean {
+    return a.filter(value => b.includes(value)).length > 0;
   }
 }
