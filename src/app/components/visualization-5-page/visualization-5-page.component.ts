@@ -5,7 +5,12 @@ import { OrdersService } from '../../services/orders.service';
 import { OrganizationsService } from '../../services/organizations.service';
 import { Order } from '../../models/orders.model';
 
-interface ChartData {
+interface ProductTypeData {
+  name: string;
+  ordersPerMonth: MonthData[];
+}
+
+interface MonthData {
   date: Date;
   orders: Order[];
 }
@@ -20,7 +25,7 @@ interface ChartData {
 export class VisualizationFivePageComponent implements OnInit {
   @ViewChild('chart', { static: true })
   private chartContainer!: ElementRef<HTMLDivElement>;
-  private data: ChartData[];
+  private data: ProductTypeData[];
 
   constructor(
     private ordersService: OrdersService,
@@ -34,24 +39,29 @@ export class VisualizationFivePageComponent implements OnInit {
     this.drawChart();
   }
 
-  private extractData(): ChartData[] {
-    return Array.from(
-      d3
-        .group(
-          this.ordersService.orders,
-          order =>
-            new Date(
-              order.distributionDate.getFullYear(),
-              order.distributionDate.getMonth()
+  private extractData(): ProductTypeData[] {
+    return [
+      {
+        name: 'Total',
+        ordersPerMonth: Array.from(
+          d3
+            .group(
+              this.ordersService.orders,
+              order =>
+                new Date(
+                  order.distributionDate.getFullYear(),
+                  order.distributionDate.getMonth()
+                )
             )
-        )
-        .entries()
-    ).map(([date, orders]) => {
-      return {
-        date,
-        orders,
-      } as ChartData;
-    });
+            .entries()
+        ).map(([date, orders]) => {
+          return {
+            date,
+            orders,
+          } as MonthData;
+        }),
+      },
+    ];
   }
 
   private drawChart() {
@@ -65,25 +75,35 @@ export class VisualizationFivePageComponent implements OnInit {
     const element = this.chartContainer.nativeElement;
     d3.select(element).selectAll('*').remove();
 
-    const svg = d3
+    const g = d3
       .select(element)
       .append('svg')
       .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
       .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`)
-      .style('background-color', 'red');
+      .attr('id', 'graph-g')
+      .attr('transform', `translate(${margin.left},${margin.top})`);
 
     const xScale = d3
       .scaleTime()
       .domain(
-        d3.extent(this.data, data => {
-          return data.date.getTime();
-        }) as [number, number]
+        d3.extent(
+          this.data
+            .reduce(
+              (arr, productTypeData) => [
+                ...arr,
+                ...productTypeData.ordersPerMonth,
+              ],
+              [] as MonthData[]
+            )
+            .flat(),
+          monthData => {
+            return monthData.date.getTime();
+          }
+        ) as [number, number]
       )
       .range([0, width]);
-    svg
-      .append('g')
+    g.append('g')
       .attr('transform', `translate(0, ${height})`)
       .call(d3.axisBottom(xScale));
 
@@ -91,30 +111,45 @@ export class VisualizationFivePageComponent implements OnInit {
       .scaleLinear()
       .domain([
         0,
-        d3.max(this.data, data => {
-          return data.orders.length;
-        }) as number,
+        d3.max(
+          this.data,
+          productTypeData =>
+            d3.max(productTypeData.ordersPerMonth, monthData => {
+              return monthData.orders.length;
+            }) as number
+        ) as number,
       ])
       .range([height, 0]);
-    svg.append('g').call(d3.axisLeft(yScale));
+    g.append('g').call(d3.axisLeft(yScale));
 
-    svg
-      .append('path')
-      .datum(this.data.sort((a, b) => a.date.getTime() - b.date.getTime()))
+    this.data.forEach(productTypeData =>
+      this.drawLine(productTypeData, xScale, yScale)
+    );
+  }
+
+  private drawLine(
+    data: ProductTypeData,
+    xScale: d3.ScaleTime<number, number, never>,
+    yScale: d3.ScaleLinear<number, number, never>
+  ) {
+    const g = d3.select('#graph-g');
+    g.append('path')
+      .datum(
+        data.ordersPerMonth.sort((a, b) => a.date.getTime() - b.date.getTime())
+      )
       .attr('fill', 'none')
       .attr('stroke', 'black')
       .attr('stroke-width', 1.5)
       .attr(
         'd',
         d3
-          .line<ChartData>()
+          .line<MonthData>()
           .x(d => xScale(d.date))
           .y(d => yScale(d.orders.length))
       );
 
-    svg
-      .selectAll('circle')
-      .data(this.data)
+    g.selectAll('circle')
+      .data(data.ordersPerMonth)
       .enter()
       .append('circle')
       .attr('fill', 'black')
@@ -127,11 +162,12 @@ export class VisualizationFivePageComponent implements OnInit {
       })
       .attr('r', 3);
 
-    svg
-      .append('text')
-      .attr('x', xScale(this.data[this.data.length - 1].date) + 10)
-      .attr('y', yScale(this.data[this.data.length - 1].orders.length) + 4)
+    const lastMonth = data.ordersPerMonth[data.ordersPerMonth.length - 1];
+
+    g.append('text')
+      .attr('x', xScale(lastMonth.date) + 10)
+      .attr('y', yScale(lastMonth.orders.length) + 4)
       .style('font-size', 14)
-      .text('Total');
+      .text(data.name);
   }
 }
