@@ -3,8 +3,17 @@ import { ToolbarComponent } from '../toolbar/toolbar.component';
 import * as d3 from 'd3';
 import { OrdersService } from '../../services/orders.service';
 import { OrganizationsService } from '../../services/organizations.service';
+import {
+  translateVendorProductCategory,
+  VendorProductCategory,
+} from '../../models/organizations.model';
 
-interface ProductTypeData {
+interface ChartData {
+  date: Date;
+  categories: VendorProductCategory[];
+}
+
+interface CategoryData {
   name: string;
   ordersPerMonth: MonthData[];
 }
@@ -24,13 +33,28 @@ interface MonthData {
 export class VisualizationFivePageComponent implements OnInit {
   @ViewChild('chart', { static: true })
   private chartContainer!: ElementRef<HTMLDivElement>;
-  private data: ProductTypeData[];
+  private data: ChartData[];
+  private filteredData: CategoryData[];
 
   constructor(
     private ordersService: OrdersService,
     private organizationsService: OrganizationsService
   ) {
-    this.data = this.extractData();
+    this.data = this.ordersService.orders.reduce((data, order) => {
+      const categories = this.organizationsService.vendorOrganizations.find(
+        vendor => vendor.id === order.vendorOrganizationId
+      )?.productCategories;
+      if (categories) {
+        data.push({
+          date: order.distributionDate,
+          categories,
+        });
+        return data;
+      } else {
+        return data;
+      }
+    }, [] as ChartData[]);
+    this.filteredData = this.filterData();
   }
 
   ngOnInit(): void {
@@ -38,29 +62,66 @@ export class VisualizationFivePageComponent implements OnInit {
     this.drawChart();
   }
 
-  private extractData(): ProductTypeData[] {
-    return [
-      {
-        name: 'Total',
-        ordersPerMonth: Array.from(
-          d3
-            .group(
-              this.ordersService.orders,
-              order =>
-                new Date(
-                  order.distributionDate.getFullYear(),
-                  order.distributionDate.getMonth()
-                )
-            )
-            .entries()
-        ).map(([date, orders]) => {
+  private filterData(): CategoryData[] {
+    const total = {
+      name: 'Total',
+      ordersPerMonth: Array.from(
+        d3
+          .group(
+            this.data,
+            order => new Date(order.date.getFullYear(), order.date.getMonth())
+          )
+          .entries()
+      )
+        .map(([date, orders]) => {
           return {
             date,
             nbOrders: orders.length,
           } as MonthData;
-        }),
-      },
-    ];
+        })
+        .sort((a, b) => a.date.getTime() - b.date.getTime()),
+    };
+    return [total].concat(
+      this.data
+        .reduce(
+          (categoriesWithDates, order) => {
+            order.categories.forEach(categoryName => {
+              const existing = categoriesWithDates.find(
+                category => category.name === categoryName
+              );
+              if (!existing) {
+                categoriesWithDates.push({
+                  name: categoryName,
+                  dates: [order.date],
+                });
+              } else {
+                existing.dates.push(order.date);
+              }
+            });
+            return categoriesWithDates;
+          },
+          [] as { name: VendorProductCategory; dates: Date[] }[]
+        )
+        .map(category => {
+          return {
+            name: translateVendorProductCategory(category.name),
+            ordersPerMonth: category.dates
+              .reduce((ordersPerMonth, date) => {
+                const month = new Date(date.getFullYear(), date.getMonth());
+                const existing = ordersPerMonth.find(
+                  monthData => monthData.date.getTime() === month.getTime()
+                );
+                if (!existing) {
+                  ordersPerMonth.push({ date: month, nbOrders: 1 });
+                } else {
+                  existing.nbOrders++;
+                }
+                return ordersPerMonth;
+              }, [] as MonthData[])
+              .sort((a, b) => a.date.getTime() - b.date.getTime()),
+          };
+        })
+    );
   }
 
   private drawChart() {
@@ -87,7 +148,7 @@ export class VisualizationFivePageComponent implements OnInit {
       .scaleTime()
       .domain(
         d3.extent(
-          this.data
+          this.filteredData
             .reduce(
               (arr, productTypeData) => [
                 ...arr,
@@ -117,7 +178,7 @@ export class VisualizationFivePageComponent implements OnInit {
       .domain([
         0,
         d3.max(
-          this.data,
+          this.filteredData,
           productTypeData =>
             d3.max(productTypeData.ordersPerMonth, monthData => {
               return monthData.nbOrders;
@@ -127,21 +188,20 @@ export class VisualizationFivePageComponent implements OnInit {
       .range([height, 0]);
     g.append('g').call(d3.axisLeft(yScale));
 
-    this.data.forEach(productTypeData =>
+    this.filteredData.forEach(productTypeData =>
       this.drawLine(productTypeData, xScale, yScale)
     );
   }
 
   private drawLine(
-    data: ProductTypeData,
+    category: CategoryData,
     xScale: d3.ScaleTime<number, number, never>,
     yScale: d3.ScaleLinear<number, number, never>
   ) {
-    const g = d3.select('#graph-g');
+    const g = d3.select('#graph-g').append('g').attr('id', category.name);
+
     g.append('path')
-      .datum(
-        data.ordersPerMonth.sort((a, b) => a.date.getTime() - b.date.getTime())
-      )
+      .datum(category.ordersPerMonth)
       .attr('fill', 'none')
       .attr('stroke', 'black')
       .attr('stroke-width', 1.5)
@@ -154,7 +214,7 @@ export class VisualizationFivePageComponent implements OnInit {
       );
 
     g.selectAll('circle')
-      .data(data.ordersPerMonth)
+      .data(category.ordersPerMonth)
       .enter()
       .append('circle')
       .attr('fill', 'black')
@@ -167,12 +227,13 @@ export class VisualizationFivePageComponent implements OnInit {
       })
       .attr('r', 3);
 
-    const lastMonth = data.ordersPerMonth[data.ordersPerMonth.length - 1];
+    const lastMonth =
+      category.ordersPerMonth[category.ordersPerMonth.length - 1];
 
     g.append('text')
       .attr('x', xScale(lastMonth.date) + 10)
       .attr('y', yScale(lastMonth.nbOrders) + 4)
       .style('font-size', 14)
-      .text(data.name);
+      .text(category.name);
   }
 }
