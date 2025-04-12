@@ -183,7 +183,9 @@ export class OrganizationsService {
 
     const vendorOrganization: VendorOrganization = {
       ...organization,
-      productCategories,
+      productCategories: productCategories.filter(
+        (value, index, array) => array.indexOf(value) === index
+      ),
     };
 
     return vendorOrganization;
