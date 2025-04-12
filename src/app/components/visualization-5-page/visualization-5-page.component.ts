@@ -3,7 +3,6 @@ import { ToolbarComponent } from '../toolbar/toolbar.component';
 import * as d3 from 'd3';
 import { OrdersService } from '../../services/orders.service';
 import { OrganizationsService } from '../../services/organizations.service';
-import { Order } from '../../models/orders.model';
 
 interface ProductTypeData {
   name: string;
@@ -12,7 +11,7 @@ interface ProductTypeData {
 
 interface MonthData {
   date: Date;
-  orders: Order[];
+  nbOrders: number;
 }
 
 @Component({
@@ -57,7 +56,7 @@ export class VisualizationFivePageComponent implements OnInit {
         ).map(([date, orders]) => {
           return {
             date,
-            orders,
+            nbOrders: orders.length,
           } as MonthData;
         }),
       },
@@ -103,9 +102,15 @@ export class VisualizationFivePageComponent implements OnInit {
         ) as [number, number]
       )
       .range([0, width]);
-    g.append('g')
-      .attr('transform', `translate(0, ${height})`)
-      .call(d3.axisBottom(xScale));
+    g.append('g').attr('transform', `translate(0, ${height})`).call(
+      d3.axisBottom(xScale)
+      // .ticks(d3.timeMonth.every(3))
+      // .tickFormat(domain => {
+      //   return (domain as Date).getMonth() === 0
+      //     ? (domain as Date).getFullYear().toString()
+      //     : '';
+      // })
+    );
 
     const yScale = d3
       .scaleLinear()
@@ -115,7 +120,7 @@ export class VisualizationFivePageComponent implements OnInit {
           this.data,
           productTypeData =>
             d3.max(productTypeData.ordersPerMonth, monthData => {
-              return monthData.orders.length;
+              return monthData.nbOrders;
             }) as number
         ) as number,
       ])
@@ -145,7 +150,7 @@ export class VisualizationFivePageComponent implements OnInit {
         d3
           .line<MonthData>()
           .x(d => xScale(d.date))
-          .y(d => yScale(d.orders.length))
+          .y(d => yScale(d.nbOrders))
       );
 
     g.selectAll('circle')
@@ -158,7 +163,7 @@ export class VisualizationFivePageComponent implements OnInit {
         return xScale(d.date);
       })
       .attr('cy', function (d) {
-        return yScale(d.orders.length);
+        return yScale(d.nbOrders);
       })
       .attr('r', 3);
 
@@ -166,7 +171,7 @@ export class VisualizationFivePageComponent implements OnInit {
 
     g.append('text')
       .attr('x', xScale(lastMonth.date) + 10)
-      .attr('y', yScale(lastMonth.orders.length) + 4)
+      .attr('y', yScale(lastMonth.nbOrders) + 4)
       .style('font-size', 14)
       .text(data.name);
   }
