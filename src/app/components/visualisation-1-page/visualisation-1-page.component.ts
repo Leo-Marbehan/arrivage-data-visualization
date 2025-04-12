@@ -16,56 +16,8 @@ import {
   selector: 'app-visualisation-1-page',
   standalone: true,
   imports: [ToolbarComponent],
-  template: `
-    <app-toolbar></app-toolbar>
-    <div class="visualization-container">
-      <h2>Catégories de produits et leurs ventes par type d'acheteur</h2>
-      <svg id="chart"></svg>
-    </div>
-  `,
-  styles: [`
-    .visualization-container {
-      padding: 20px;
-      background-color: white;
-      width: 100%;
-      height: calc(100vh - 64px); /* Full height minus toolbar */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
-      font-size: 24px;
-    }
-    svg {
-      width: 100%;
-      height: 100%;
-      margin: 0 auto;
-      display: block;
-    }
-    .tooltip {
-      position: absolute;
-      padding: 12px;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      pointer-events: none;
-      font-size: 14px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      z-index: 100;
-    }
-    .segment-label {
-      pointer-events: none;
-      font-weight: bold;
-      text-shadow: 
-        -1px -1px 0 white,
-        1px -1px 0 white,
-        -1px 1px 0 white,
-        1px 1px 0 white;
-    }
-  `]
+  templateUrl: './visualisation-1-page.component.html',
+  styleUrls: ['./visualisation-1-page.component.scss']
 })
 export class Visualisation1PageComponent implements OnInit {
   private readonly BUYER_TYPES = [
