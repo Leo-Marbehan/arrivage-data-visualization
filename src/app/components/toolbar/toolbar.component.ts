@@ -21,6 +21,11 @@ export class ToolbarComponent {
   async navigateToRawData() {
     await this.router.navigate(['raw-data']);
   }
+
+  async navigateToViz1() {
+    console.log('Navigating to viz1...');
+    await this.router.navigate(['viz1']);
+  }
   
   async navigateToVisualization4() {
     await this.router.navigate(['visualization-4']);
