@@ -54,7 +54,6 @@ export class Visualisation1PageComponent implements OnInit {
 
   async ngOnInit() {
     try {
-      console.log('Starting data loading...');
       this.loadingService.start('Chargement des données...');
       
       await Promise.all([
@@ -71,7 +70,6 @@ export class Visualisation1PageComponent implements OnInit {
 
       this.createVisualization(orders, organizations);
     } catch (error: any) {
-      console.error('Error in visualization:', error);
       const svg = d3.select('svg#chart');
       svg.selectAll('*').remove();
       svg
@@ -86,15 +84,12 @@ export class Visualisation1PageComponent implements OnInit {
   }
 
   createVisualization(orders: any[], organizations: any[]) {
-    console.log('Creating visualization...');
     
     // Filter orders to only include confirmed orders
     const validOrders = orders.filter(order => 
       order.allStatuses && 
       order.allStatuses.includes('confirmed')
     );
-
-    console.log(`Using ${validOrders.length} out of ${orders.length} orders`);
     
     // Create a map of organization IDs to their categories
     const orgMap = new Map<string, string>();
