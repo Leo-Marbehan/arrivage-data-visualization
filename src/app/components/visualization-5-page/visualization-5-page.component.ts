@@ -204,7 +204,7 @@ export class VisualizationFivePageComponent
     const containerWidth =
       this.chartContainer.nativeElement.getBoundingClientRect().width;
     const containerHeight = 500;
-    const margin = { top: 20, right: 80, bottom: 30, left: 100 };
+    const margin = { top: 20, right: 130, bottom: 30, left: 230 };
     const width = containerWidth - margin.left - margin.right;
     const height = containerHeight - margin.top - margin.bottom;
 
@@ -304,7 +304,7 @@ export class VisualizationFivePageComponent
     g.append('text')
       .attr('x', xScale(lastMonth.date) + 10)
       .attr('y', yScale(lastMonth.nbOrders) + 4)
-      .style('font-size', 14)
+      .style('font-size', 12)
       .attr('fill', color)
       .text(name);
   }
