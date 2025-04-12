@@ -20,30 +20,22 @@ interface ChartData {
 export class VisualizationFivePageComponent implements OnInit {
   @ViewChild('chart', { static: true })
   private chartContainer!: ElementRef<HTMLDivElement>;
+  private data: ChartData[];
 
   constructor(
     private ordersService: OrdersService,
     private organizationsService: OrganizationsService
-  ) {}
+  ) {
+    this.data = this.extractData();
+  }
 
   ngOnInit(): void {
-    const containerWidth =
-      this.chartContainer.nativeElement.getBoundingClientRect().width;
-    const containerHeight = 500;
-    const margin = { top: 20, right: 80, bottom: 30, left: 50 };
-    const width = containerWidth - margin.left - margin.right;
-    const height = containerHeight - margin.top - margin.bottom;
+    d3.select(window).on('resize', this.drawChart.bind(this));
+    this.drawChart();
+  }
 
-    const svg = d3
-      .select(this.chartContainer.nativeElement)
-      .append('svg')
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`)
-      .style('background-color', 'red');
-
-    const data = Array.from(
+  private extractData(): ChartData[] {
+    return Array.from(
       d3
         .group(
           this.ordersService.orders,
@@ -60,11 +52,32 @@ export class VisualizationFivePageComponent implements OnInit {
         orders,
       } as ChartData;
     });
+  }
+
+  private drawChart() {
+    const containerWidth =
+      this.chartContainer.nativeElement.getBoundingClientRect().width;
+    const containerHeight = 500;
+    const margin = { top: 20, right: 80, bottom: 30, left: 50 };
+    const width = containerWidth - margin.left - margin.right;
+    const height = containerHeight - margin.top - margin.bottom;
+
+    const element = this.chartContainer.nativeElement;
+    d3.select(element).selectAll('*').remove();
+
+    const svg = d3
+      .select(element)
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .append('g')
+      .attr('transform', `translate(${margin.left},${margin.top})`)
+      .style('background-color', 'red');
 
     const xScale = d3
       .scaleTime()
       .domain(
-        d3.extent(data, data => {
+        d3.extent(this.data, data => {
           return data.date.getTime();
         }) as [number, number]
       )
@@ -78,7 +91,7 @@ export class VisualizationFivePageComponent implements OnInit {
       .scaleLinear()
       .domain([
         0,
-        d3.max(data, data => {
+        d3.max(this.data, data => {
           return data.orders.length;
         }) as number,
       ])
@@ -87,7 +100,7 @@ export class VisualizationFivePageComponent implements OnInit {
 
     svg
       .append('path')
-      .datum(data.sort((a, b) => a.date.getTime() - b.date.getTime()))
+      .datum(this.data.sort((a, b) => a.date.getTime() - b.date.getTime()))
       .attr('fill', 'none')
       .attr('stroke', 'black')
       .attr('stroke-width', 1.5)
@@ -100,8 +113,8 @@ export class VisualizationFivePageComponent implements OnInit {
       );
 
     svg
-      .selectAll('circles')
-      .data(data)
+      .selectAll('circle')
+      .data(this.data)
       .enter()
       .append('circle')
       .attr('fill', 'black')
@@ -116,8 +129,8 @@ export class VisualizationFivePageComponent implements OnInit {
 
     svg
       .append('text')
-      .attr('x', xScale(data[data.length - 1].date) + 10)
-      .attr('y', yScale(data[data.length - 1].orders.length) + 4)
+      .attr('x', xScale(this.data[this.data.length - 1].date) + 10)
+      .attr('y', yScale(this.data[this.data.length - 1].orders.length) + 4)
       .style('font-size', 14)
       .text('Total');
   }
