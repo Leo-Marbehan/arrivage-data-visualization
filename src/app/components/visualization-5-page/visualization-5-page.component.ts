@@ -2,7 +2,6 @@ import {
   AfterViewChecked,
   Component,
   ElementRef,
-  OnInit,
   ViewChild,
 } from '@angular/core';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
@@ -17,6 +16,11 @@ import {
 } from '../../models/organizations.model';
 import { Order } from '../../models/orders.model';
 import { MatCheckbox } from '@angular/material/checkbox';
+
+interface Scales {
+  x: d3.ScaleTime<number, number, never>;
+  y: d3.ScaleLinear<number, number, never>;
+}
 
 interface Filter {
   category: VendorProductCategory;
@@ -51,9 +55,7 @@ interface MonthData {
   templateUrl: './visualization-5-page.component.html',
   styleUrl: './visualization-5-page.component.scss',
 })
-export class VisualizationFivePageComponent
-  implements OnInit, AfterViewChecked
-{
+export class VisualizationFivePageComponent implements AfterViewChecked {
   categoryFilters: Filter[];
   @ViewChild('chart', { static: true })
   private chartContainer!: ElementRef<HTMLDivElement>;
@@ -61,6 +63,7 @@ export class VisualizationFivePageComponent
   private readonly groupedData: CategoryData[];
   private filteredCategories: CategoryData[] = [];
   private filteredTotal: MonthData[] = [];
+  private dimensions = { width: 0, height: 0 };
 
   get displayedCategories(): VendorProductCategory[] {
     return this.categoryFilters.reduce((displayedCategories, filter) => {
@@ -84,18 +87,14 @@ export class VisualizationFivePageComponent
     this.filterData();
   }
   ngAfterViewChecked(): void {
-    this.drawChart();
-  }
-
-  ngOnInit(): void {
-    d3.select(window).on('resize', this.drawChart.bind(this));
-    this.drawChart();
+    d3.select(window).on('resize', this.createChart.bind(this));
+    this.createChart();
   }
 
   toggleFilter(filter: Filter, displayed: boolean) {
     filter.displayed = displayed;
     this.filterData();
-    this.drawChart();
+    this.updateChart();
   }
 
   private createFilters(): Filter[] {
@@ -200,26 +199,49 @@ export class VisualizationFivePageComponent
       .sort((a, b) => a.date.getTime() - b.date.getTime());
   }
 
-  private drawChart() {
+  private createChart() {
     const containerWidth =
       this.chartContainer.nativeElement.getBoundingClientRect().width;
     const containerHeight = 550;
     const margin = { top: 20, right: 130, bottom: 30, left: 250 };
-    const width = containerWidth - margin.left - margin.right;
-    const height = containerHeight - margin.top - margin.bottom;
+    this.dimensions = {
+      width: containerWidth - margin.left - margin.right,
+      height: containerHeight - margin.top - margin.bottom,
+    };
 
     const element = this.chartContainer.nativeElement;
     d3.select(element).selectAll('*').remove();
-
-    const g = d3
-      .select(element)
+    d3.select(element)
       .append('svg')
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
+      .attr('width', this.dimensions.width + margin.left + margin.right)
+      .attr('height', this.dimensions.height + margin.top + margin.bottom)
       .append('g')
       .attr('id', 'graph-g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
+    this.updateChart();
+  }
+
+  private updateChart() {
+    const scales = this.drawAxies(
+      this.dimensions.width,
+      this.dimensions.height
+    );
+    this.filteredCategories.forEach(category =>
+      this.drawLine(
+        translateVendorProductCategory(category.name),
+        'gray',
+        category.ordersPerMonth,
+        scales
+      )
+    );
+    if (this.filteredTotal.length > 0) {
+      this.drawLine('Total', 'black', this.filteredTotal, scales);
+    }
+  }
+
+  private drawAxies(width: number, height: number): Scales {
+    const g = d3.select('#graph-g');
     const xScale = d3
       .scaleTime()
       .domain(
@@ -249,26 +271,21 @@ export class VisualizationFivePageComponent
       .range([height, 0]);
     g.append('g').call(d3.axisLeft(yScale));
 
-    this.filteredCategories.forEach(category =>
-      this.drawLine(
-        translateVendorProductCategory(category.name),
-        'gray',
-        category.ordersPerMonth,
-        xScale,
-        yScale
-      )
-    );
-    if (this.filteredTotal.length > 0) {
-      this.drawLine('Total', 'black', this.filteredTotal, xScale, yScale);
-    }
+    g.append('text')
+      .text('Nombre de commandes')
+      .attr('class', 'axis-text')
+      .attr('font-size', 12)
+      .attr('x', 10)
+      .attr('y', 10);
+
+    return { x: xScale, y: yScale };
   }
 
   private drawLine(
     name: string,
     color: string,
     data: MonthData[],
-    xScale: d3.ScaleTime<number, number, never>,
-    yScale: d3.ScaleLinear<number, number, never>
+    scales: Scales
   ) {
     const g = d3.select('#graph-g').append('g').attr('id', name);
 
@@ -281,8 +298,8 @@ export class VisualizationFivePageComponent
         'd',
         d3
           .line<MonthData>()
-          .x(d => xScale(d.date))
-          .y(d => yScale(d.nbOrders))
+          .x(d => scales.x(d.date))
+          .y(d => scales.y(d.nbOrders))
       );
 
     g.selectAll('circle')
@@ -291,19 +308,19 @@ export class VisualizationFivePageComponent
       .append('circle')
       .attr('fill', color)
       .attr('stroke', 'none')
-      .attr('cx', function (d) {
-        return xScale(d.date);
+      .attr('cx', d => {
+        return scales.x(d.date);
       })
-      .attr('cy', function (d) {
-        return yScale(d.nbOrders);
+      .attr('cy', d => {
+        return scales.y(d.nbOrders);
       })
       .attr('r', 3);
 
     const lastMonth = data[data.length - 1];
 
     g.append('text')
-      .attr('x', xScale(lastMonth.date) + 10)
-      .attr('y', yScale(lastMonth.nbOrders) + 4)
+      .attr('x', scales.x(lastMonth.date) + 10)
+      .attr('y', scales.y(lastMonth.nbOrders) + 4)
       .style('font-size', 12)
       .attr('fill', color)
       .text(name);
