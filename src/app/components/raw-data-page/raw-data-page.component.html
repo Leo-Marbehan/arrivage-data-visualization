@@ -17,6 +17,18 @@
     }}
   </button>
 
+  <p>
+    Lorsque les données sont chargées, elles sont enregistrées dans votre
+    navigateur pour ne pas avoir à lire les fichiers à chaque fois. En cas de
+    besoin, vous pouvez les réinitialiser en cliquant sur le bouton ci-dessous.
+  </p>
+
+  <button mat-raised-button color="warn" (click)="onResetDataButtonClick()">
+    <mat-icon> restart_alt </mat-icon>
+
+    Réinitialiser les données
+  </button>
+
   <section class="table">
     @switch (view) {
       @case ('organizations') {
