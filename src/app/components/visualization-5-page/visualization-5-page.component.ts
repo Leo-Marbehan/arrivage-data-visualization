@@ -16,13 +16,28 @@ import {
   MatButtonToggleGroup,
 } from '@angular/material/button-toggle';
 
+const CONTAINER_HEIGHT = 550;
+const MARGIN = { top: 30, right: 130, bottom: 25, left: 250 };
+
 const HIGHLIGHT_COLOR = '#ba005d';
 const TOTAL_COLOR = 'black';
 const CATEGORY_COLOR = 'grey';
 
+const SEASONS = [
+  { name: 'Hiver', start: '12-21', end: '03-20', color: '#C6DEF1' },
+  { name: 'Printemps', start: '03-21', end: '06-20', color: '#C9E4D5' },
+  { name: 'Été', start: '06-21', end: '09-20', color: '#FAEDCB' },
+  { name: 'Automne', start: '09-21', end: '12-20', color: '#F7D9C4' },
+];
+
 interface Scales {
   x: d3.ScaleTime<number, number, never>;
   y: d3.ScaleLinear<number, number, never>;
+}
+
+interface Dimensions {
+  width: number;
+  height: number;
 }
 
 interface Filter {
@@ -64,22 +79,18 @@ interface MonthData {
   styleUrl: './visualization-5-page.component.scss',
 })
 export class VisualizationFivePageComponent implements OnInit {
-  categoryFilters: Filter[];
-  SEASONS = [
-    { name: 'Hiver', start: '12-21', end: '03-20', color: '#C6DEF1' },
-    { name: 'Printemps', start: '03-21', end: '06-20', color: '#C9E4D5' },
-    { name: 'Été', start: '06-21', end: '09-20', color: '#FAEDCB' },
-    { name: 'Automne', start: '09-21', end: '12-20', color: '#F7D9C4' },
-  ];
-  highlightedCategory?: VendorProductCategory;
   @ViewChild('chart', { static: true })
   private chartContainer!: ElementRef<HTMLDivElement>;
+
+  categoryFilters: Filter[];
+  seasons = SEASONS;
+  highlightedCategory?: VendorProductCategory;
+
   private readonly data: ChartData[];
   private readonly groupedData: CategoryData[];
   private filteredCategories: CategoryData[] = [];
   private filteredTotal: MonthData[] = [];
-  private categoriesView = false;
-  private dimensions = { width: 0, height: 0 };
+  private isCategoriesView = false;
 
   get displayedCategories(): VendorProductCategory[] {
     return this.categoryFilters.reduce((displayedCategories, filter) => {
@@ -120,26 +131,35 @@ export class VisualizationFivePageComponent implements OnInit {
     }
   }
 
-  changeView(categoriesView: boolean) {
-    this.categoriesView = categoriesView;
+  changeView(isCategoriesView: boolean) {
+    this.isCategoriesView = isCategoriesView;
     this.createChart();
     // TODO: updateChart
   }
 
   onCheckboxMouseEnter(categoryId: VendorProductCategory) {
-    if (this.categoriesView && this.displayedCategories.includes(categoryId)) {
+    if (
+      this.isCategoriesView &&
+      this.displayedCategories.includes(categoryId)
+    ) {
       this.highlightCategory(categoryId);
     }
   }
 
   onCheckboxMouseLeave(categoryId: VendorProductCategory) {
-    if (this.categoriesView && this.displayedCategories.includes(categoryId)) {
+    if (
+      this.isCategoriesView &&
+      this.displayedCategories.includes(categoryId)
+    ) {
       this.undoHighlightCategory(
         categoryId,
-        this.categoriesView ? CATEGORY_COLOR : TOTAL_COLOR
+        this.isCategoriesView ? CATEGORY_COLOR : TOTAL_COLOR
       );
     }
   }
+
+  // -----------------------------------------------------------
+  // MARK: Manipulating data
 
   private createFilters(): Filter[] {
     return VENDOR_PRODUCT_CATEGORIES.map(categoryId => {
@@ -243,53 +263,42 @@ export class VisualizationFivePageComponent implements OnInit {
       .sort((a, b) => a.date.getTime() - b.date.getTime());
   }
 
+  // -----------------------------------------------------------
+  // MARK: Drawing the chart
+
   private createChart() {
+    const dimensions = this.drawContainer();
+    const scales = this.drawAxies(dimensions);
+    this.drawSeasons(scales, dimensions);
+    this.drawAllLines(scales);
+  }
+
+  private updateChart() {
+    // TODO
+  }
+
+  private drawContainer(): Dimensions {
     const containerWidth =
       this.chartContainer.nativeElement.getBoundingClientRect().width;
-    const containerHeight = 550;
-    const margin = { top: 30, right: 130, bottom: 25, left: 250 };
-    this.dimensions = {
-      width: containerWidth - margin.left - margin.right,
-      height: containerHeight - margin.top - margin.bottom,
+    const dimensions = {
+      width: containerWidth - MARGIN.left - MARGIN.right,
+      height: CONTAINER_HEIGHT - MARGIN.top - MARGIN.bottom,
     };
 
     const element = this.chartContainer.nativeElement;
     d3.select(element).selectAll('*').remove();
     d3.select(element)
       .append('svg')
-      .attr('width', this.dimensions.width + margin.left + margin.right)
-      .attr('height', this.dimensions.height + margin.top + margin.bottom)
+      .attr('width', dimensions.width + MARGIN.left + MARGIN.right)
+      .attr('height', dimensions.height + MARGIN.top + MARGIN.bottom)
       .append('g')
       .attr('id', 'graph-g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
+      .attr('transform', `translate(${MARGIN.left},${MARGIN.top})`);
 
-    this.updateChart();
+    return dimensions;
   }
 
-  private updateChart() {
-    const scales = this.drawAxies(
-      this.dimensions.width,
-      this.dimensions.height
-    );
-
-    this.drawSeasons(scales);
-
-    if (this.categoriesView) {
-      this.filteredCategories.forEach(category =>
-        this.drawLine(
-          translateVendorProductCategory(category.categoryId),
-          CATEGORY_COLOR,
-          category.ordersPerMonth,
-          scales,
-          category.categoryId
-        )
-      );
-    } else if (this.filteredTotal.length > 0) {
-      this.drawLine('Total', TOTAL_COLOR, this.filteredTotal, scales);
-    }
-  }
-
-  private drawAxies(width: number, height: number): Scales {
+  private drawAxies(dimensions: Dimensions): Scales {
     const g = d3.select('#graph-g');
     const xScale = d3
       .scaleTime()
@@ -299,9 +308,9 @@ export class VisualizationFivePageComponent implements OnInit {
           Date,
         ]
       )
-      .range([0, width]);
+      .range([0, dimensions.width]);
     g.append('g')
-      .attr('transform', `translate(0, ${height})`)
+      .attr('transform', `translate(0, ${dimensions.height})`)
       .call(
         d3
           .axisBottom(xScale)
@@ -320,7 +329,7 @@ export class VisualizationFivePageComponent implements OnInit {
     const yScale = d3
       .scaleLinear()
       .domain([0, this.getMaxY()])
-      .range([height, 0]);
+      .range([dimensions.height, 0]);
     g.append('g').call(d3.axisLeft(yScale));
 
     g.append('text')
@@ -333,31 +342,14 @@ export class VisualizationFivePageComponent implements OnInit {
     return { x: xScale, y: yScale };
   }
 
-  private getMaxY(): number {
-    if (this.categoriesView) {
-      return d3.max(
-        this.filteredCategories,
-        category =>
-          d3.max(
-            category.ordersPerMonth,
-            monthData => monthData.nbOrders
-          ) as number
-      ) as number;
-    } else {
-      return d3.max(this.filteredTotal, monthData => {
-        return monthData.nbOrders;
-      })!;
-    }
-  }
-
-  private drawSeasons(scales: Scales): void {
+  private drawSeasons(scales: Scales, dimensions: Dimensions): void {
     const g = d3.select('#graph-g');
 
     const startDate = scales.x.domain()[0];
     const endDate = scales.x.domain()[1];
     let currentYear = startDate.getFullYear();
     while (new Date(`${currentYear}-01-01`) < endDate) {
-      this.SEASONS.forEach(season => {
+      this.seasons.forEach(season => {
         const startDateStr = season.start.startsWith('12')
           ? `${currentYear - 1}-${season.start}`
           : `${currentYear}-${season.start}`;
@@ -377,12 +369,28 @@ export class VisualizationFivePageComponent implements OnInit {
               scales.x(d3.min([seasonEnd, endDate]) as Date) -
                 scales.x(d3.max([seasonStart, startDate]) as Date)
             )
-            .attr('height', this.dimensions.height)
+            .attr('height', dimensions.height)
             .attr('fill', season.color)
             .attr('opacity', 0.5);
         }
       });
       currentYear++;
+    }
+  }
+
+  private drawAllLines(scales: Scales): void {
+    if (this.isCategoriesView) {
+      this.filteredCategories.forEach(category =>
+        this.drawLine(
+          translateVendorProductCategory(category.categoryId),
+          CATEGORY_COLOR,
+          category.ordersPerMonth,
+          scales,
+          category.categoryId
+        )
+      );
+    } else if (this.filteredTotal.length > 0) {
+      this.drawLine('Total', TOTAL_COLOR, this.filteredTotal, scales);
     }
   }
 
@@ -453,6 +461,9 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('stroke', 'none');
   }
 
+  // -----------------------------------------------------------
+  // MARK: Hover
+
   private highlightCategory(categoryId: VendorProductCategory) {
     const g = d3.select<SVGGElement, unknown>(`#${categoryId}`);
     g.select('path').attr('stroke-width', 3).attr('stroke', HIGHLIGHT_COLOR);
@@ -479,7 +490,27 @@ export class VisualizationFivePageComponent implements OnInit {
     this.highlightedCategory = undefined;
   }
 
+  // -----------------------------------------------------------
+  // MARK: Utils
+
   private hasIntersection(a: string[], b: string[]): boolean {
     return a.filter(value => b.includes(value)).length > 0;
+  }
+
+  private getMaxY(): number {
+    if (this.isCategoriesView) {
+      return d3.max(
+        this.filteredCategories,
+        category =>
+          d3.max(
+            category.ordersPerMonth,
+            monthData => monthData.nbOrders
+          ) as number
+      ) as number;
+    } else {
+      return d3.max(this.filteredTotal, monthData => {
+        return monthData.nbOrders;
+      })!;
+    }
   }
 }

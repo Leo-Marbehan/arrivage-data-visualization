@@ -32,7 +32,7 @@
         </mat-checkbox>
       }
       <div class="legend">
-        @for (season of SEASONS; track $index) {
+        @for (season of seasons; track $index) {
           <div class="season">
             <div class="color" [style.background-color]="season.color"></div>
             {{season.name}}
