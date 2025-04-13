@@ -5,66 +5,30 @@ import { OrdersService } from '../../services/orders.service';
 import { OrganizationsService } from '../../services/organizations.service';
 import {
   translateVendorProductCategory,
-  VENDOR_PRODUCT_CATEGORIES,
-  VendorOrganization,
   VendorProductCategory,
 } from '../../models/organizations.model';
-import { Order } from '../../models/orders.model';
 import { MatCheckbox } from '@angular/material/checkbox';
 import {
   MatButtonToggle,
   MatButtonToggleGroup,
 } from '@angular/material/button-toggle';
-
-const CONTAINER_HEIGHT = 550;
-const MARGIN = { top: 30, right: 130, bottom: 25, left: 250 };
-
-const HIGHLIGHT_COLOR = '#ba005d';
-const TOTAL_COLOR = 'black';
-const CATEGORY_COLOR = 'grey';
-
-const SEASONS = [
-  { name: 'Hiver', start: '12-21', end: '03-20', color: '#C6DEF1' },
-  { name: 'Printemps', start: '03-21', end: '06-20', color: '#C9E4D5' },
-  { name: 'Été', start: '06-21', end: '09-20', color: '#FAEDCB' },
-  { name: 'Automne', start: '09-21', end: '12-20', color: '#F7D9C4' },
-];
-
-interface Scales {
-  x: d3.ScaleTime<number, number, never>;
-  y: d3.ScaleLinear<number, number, never>;
-}
-
-interface Dimensions {
-  width: number;
-  height: number;
-}
-
-interface Filter {
-  categoryId: VendorProductCategory;
-  name: string;
-  displayed: boolean;
-}
-
-interface ChartData {
-  date: Date;
-  categories: VendorProductCategory[];
-}
-
-interface DatesByCategory {
-  categoryId: VendorProductCategory;
-  dates: Date[];
-}
-
-interface CategoryData {
-  categoryId: VendorProductCategory;
-  ordersPerMonth: MonthData[];
-}
-
-interface MonthData {
-  date: Date;
-  nbOrders: number;
-}
+import {
+  SEASONS,
+  CATEGORY_COLOR,
+  TOTAL_COLOR,
+  MARGIN,
+  CONTAINER_HEIGHT,
+  HIGHLIGHT_COLOR,
+} from './visualization-5-page.constants';
+import {
+  Filter,
+  ChartData,
+  CategoryData,
+  MonthData,
+  Dimensions,
+  Scales,
+} from './visualization-5-page.model';
+import { VisualizationFiveUtils as utils } from './visualization-5-page.utils';
 
 @Component({
   selector: 'app-visualization-5-page',
@@ -105,18 +69,22 @@ export class VisualizationFivePageComponent implements OnInit {
     private ordersService: OrdersService,
     private organizationsService: OrganizationsService
   ) {
-    this.categoryFilters = this.createFilters();
-    this.data = this.attachCategoriesToOrderDates(
-      this.cropDateRange(this.ordersService.orders),
+    this.categoryFilters = utils.createFilters();
+    this.data = utils.attachCategoriesToOrderDates(
+      utils.cropDateRange(this.ordersService.orders),
       this.organizationsService.vendorOrganizations
     );
-    this.groupedData = this.groupByMonth(this.groupByCategory(this.data));
+    this.groupedData = utils.groupByMonth(utils.groupByCategory(this.data));
     this.filterData();
   }
+
   ngOnInit(): void {
     d3.select(window).on('resize', this.createChart.bind(this));
     this.createChart();
   }
+
+  // -----------------------------------------------------------
+  // MARK: Interactions
 
   toggleFilter(filter: Filter, displayed: boolean) {
     if (!displayed) {
@@ -158,123 +126,22 @@ export class VisualizationFivePageComponent implements OnInit {
     }
   }
 
-  // -----------------------------------------------------------
-  // MARK: Manipulating data
-
-  private createFilters(): Filter[] {
-    return VENDOR_PRODUCT_CATEGORIES.map(categoryId => {
-      return {
-        categoryId,
-        name: translateVendorProductCategory(categoryId),
-        displayed: true,
-      };
-    });
-  }
-
-  private cropDateRange(orders: Order[]): Order[] {
-    return orders.filter(
-      order =>
-        order.distributionDate.getTime() >= new Date(2021, 3).getTime() && // Min: April 2021
-        order.distributionDate.getTime() <= new Date(2025, 1).getTime() // Max: February 2025
-    );
-  }
-
-  private attachCategoriesToOrderDates(
-    orders: Order[],
-    vendors: VendorOrganization[]
-  ): ChartData[] {
-    return orders.reduce((data, order) => {
-      const categories = vendors.find(
-        vendor => vendor.id === order.vendorOrganizationId
-      )?.productCategories;
-      if (categories) {
-        data.push({
-          date: order.distributionDate,
-          categories,
-        });
-        return data;
-      } else {
-        return data;
-      }
-    }, [] as ChartData[]);
-  }
-
-  private groupByCategory(data: ChartData[]): DatesByCategory[] {
-    return data.reduce((categoriesWithDates, order) => {
-      order.categories.forEach(categoryId => {
-        const existing = categoriesWithDates.find(
-          category => category.categoryId === categoryId
-        );
-        if (!existing) {
-          categoriesWithDates.push({
-            categoryId,
-            dates: [order.date],
-          });
-        } else {
-          existing.dates.push(order.date);
-        }
-      });
-      return categoriesWithDates;
-    }, [] as DatesByCategory[]);
-  }
-
-  private groupByMonth(data: DatesByCategory[]): CategoryData[] {
-    return data.map(category => {
-      return {
-        categoryId: category.categoryId,
-        ordersPerMonth: category.dates
-          .reduce((ordersPerMonth, date) => {
-            const month = new Date(date.getFullYear(), date.getMonth());
-            const existing = ordersPerMonth.find(
-              monthData => monthData.date.getTime() === month.getTime()
-            );
-            if (!existing) {
-              ordersPerMonth.push({ date: month, nbOrders: 1 });
-            } else {
-              existing.nbOrders++;
-            }
-            return ordersPerMonth;
-          }, [] as MonthData[])
-          .sort((a, b) => a.date.getTime() - b.date.getTime()),
-      };
-    });
-  }
-
   private filterData(): void {
-    this.filteredCategories = this.groupedData.filter(category =>
-      this.displayedCategories.includes(category.categoryId)
+    this.filteredCategories = utils.filterCategories(
+      this.groupedData,
+      this.displayedCategories
     );
-    this.filteredTotal = Array.from(
-      d3
-        .group(
-          this.data.filter(d =>
-            this.hasIntersection(d.categories, this.displayedCategories)
-          ),
-          order => new Date(order.date.getFullYear(), order.date.getMonth())
-        )
-        .entries()
-    )
-      .map(([date, orders]) => {
-        return {
-          date,
-          nbOrders: orders.length,
-        } as MonthData;
-      })
-      .sort((a, b) => a.date.getTime() - b.date.getTime());
+    this.filteredTotal = utils.filterTotal(this.data, this.displayedCategories);
   }
 
   // -----------------------------------------------------------
-  // MARK: Drawing the chart
+  // MARK: Creating the chart
 
   private createChart() {
     const dimensions = this.drawContainer();
     const scales = this.drawAxies(dimensions);
     this.drawSeasons(scales, dimensions);
     this.drawAllLines(scales);
-  }
-
-  private updateChart() {
-    // TODO
   }
 
   private drawContainer(): Dimensions {
@@ -328,7 +195,14 @@ export class VisualizationFivePageComponent implements OnInit {
 
     const yScale = d3
       .scaleLinear()
-      .domain([0, this.getMaxY()])
+      .domain([
+        0,
+        utils.getMaxY(
+          this.isCategoriesView,
+          this.filteredCategories,
+          this.filteredTotal
+        ),
+      ])
       .range([dimensions.height, 0]);
     g.append('g').call(d3.axisLeft(yScale));
 
@@ -462,6 +336,13 @@ export class VisualizationFivePageComponent implements OnInit {
   }
 
   // -----------------------------------------------------------
+  // MARK: Updating the chart
+
+  private updateChart() {
+    // TODO
+  }
+
+  // -----------------------------------------------------------
   // MARK: Hover
 
   private highlightCategory(categoryId: VendorProductCategory) {
@@ -488,29 +369,5 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('fill', originalColor)
       .attr('font-weight', 'normal');
     this.highlightedCategory = undefined;
-  }
-
-  // -----------------------------------------------------------
-  // MARK: Utils
-
-  private hasIntersection(a: string[], b: string[]): boolean {
-    return a.filter(value => b.includes(value)).length > 0;
-  }
-
-  private getMaxY(): number {
-    if (this.isCategoriesView) {
-      return d3.max(
-        this.filteredCategories,
-        category =>
-          d3.max(
-            category.ordersPerMonth,
-            monthData => monthData.nbOrders
-          ) as number
-      ) as number;
-    } else {
-      return d3.max(this.filteredTotal, monthData => {
-        return monthData.nbOrders;
-      })!;
-    }
   }
 }
