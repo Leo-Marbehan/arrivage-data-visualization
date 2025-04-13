@@ -268,15 +268,22 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
         ]
       )
       .range([0, width]);
-    g.append('g').attr('transform', `translate(0, ${height})`).call(
-      d3.axisBottom(xScale)
-      // .ticks(d3.timeMonth.every(3))
-      // .tickFormat(domain => {
-      //   return (domain as Date).getMonth() === 0
-      //     ? (domain as Date).getFullYear().toString()
-      //     : '';
-      // })
-    );
+    g.append('g')
+      .attr('transform', `translate(0, ${height})`)
+      .call(
+        d3
+          .axisBottom(xScale)
+          .ticks(d3.timeMonth.every(2))
+          .tickFormat(domain => {
+            if ((domain as Date).getMonth() === 0) {
+              return (domain as Date).getFullYear().toString();
+            } else {
+              return (domain as Date).toLocaleString('default', {
+                month: 'short',
+              });
+            }
+          })
+      );
 
     const yScale = d3
       .scaleLinear()
