@@ -1,9 +1,4 @@
-import {
-  AfterViewChecked,
-  Component,
-  ElementRef,
-  ViewChild,
-} from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
 import * as d3 from 'd3';
 import { OrdersService } from '../../services/orders.service';
@@ -20,6 +15,8 @@ import {
   MatButtonToggle,
   MatButtonToggleGroup,
 } from '@angular/material/button-toggle';
+
+const HIGHLIGHT_COLOR = '#ba005d';
 
 interface Scales {
   x: d3.ScaleTime<number, number, never>;
@@ -64,7 +61,7 @@ interface MonthData {
   templateUrl: './visualization-5-page.component.html',
   styleUrl: './visualization-5-page.component.scss',
 })
-export class VisualizationFivePageComponent implements AfterViewChecked {
+export class VisualizationFivePageComponent implements OnInit {
   categoryFilters: Filter[];
   SEASONS = [
     { name: 'Hiver', start: '12-21', end: '03-20', color: '#C6DEF1' },
@@ -102,7 +99,7 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
     this.groupedData = this.groupByMonth(this.groupByCategory(this.data));
     this.filterData();
   }
-  ngAfterViewChecked(): void {
+  ngOnInit(): void {
     d3.select(window).on('resize', this.createChart.bind(this));
     this.createChart();
   }
@@ -110,12 +107,14 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
   toggleFilter(filter: Filter, displayed: boolean) {
     filter.displayed = displayed;
     this.filterData();
-    this.updateChart();
+    this.createChart();
+    // TODO: updateChart
   }
 
   changeView(categoriesView: boolean) {
     this.categoriesView = categoriesView;
-    this.updateChart();
+    this.createChart();
+    // TODO: updateChart
   }
 
   private createFilters(): Filter[] {
@@ -368,13 +367,19 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
     data: MonthData[],
     scales: Scales
   ) {
-    const g = d3.select('#graph-g').append('g').attr('id', name);
+    const g = d3
+      .select('#graph-g')
+      .append('g')
+      .attr('id', name)
+      .attr('stroke', color)
+      .attr('fill', color)
+      .on('mouseenter', () => this.highlightLine(g))
+      .on('mouseleave', () => this.undoHighlightLine(g, color));
 
     g.append('path')
       .datum(data)
       .attr('fill', 'none')
-      .attr('stroke', color)
-      .attr('stroke-width', 1.5)
+      .attr('stroke-width', 2)
       .attr(
         'd',
         d3
@@ -387,7 +392,6 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
       .data(data)
       .enter()
       .append('circle')
-      .attr('fill', color)
       .attr('stroke', 'none')
       .attr('cx', d => {
         return scales.x(d.date);
@@ -399,12 +403,47 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
 
     const lastMonth = data[data.length - 1];
 
-    g.append('text')
+    const label = g.append('g').attr('class', 'label');
+    label
+      .append('text')
       .attr('x', scales.x(lastMonth.date) + 10)
       .attr('y', scales.y(lastMonth.nbOrders) + 4)
+      .attr('stroke', 'none')
       .style('font-size', 12)
-      .attr('fill', color)
       .text(name);
+    const textDims = label.select<SVGTextElement>('text').node()!.getBBox();
+    label
+      .insert('rect', ':first-child')
+      .attr('x', textDims.x)
+      .attr('y', textDims.y)
+      .attr('fill', '#F9F9F9')
+      .attr('width', textDims.width)
+      .attr('height', textDims.height)
+      .attr('stroke', 'none');
+  }
+
+  private highlightLine(
+    g: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>
+  ) {
+    g.select('path').attr('stroke-width', 3.5).attr('stroke', HIGHLIGHT_COLOR);
+    g.selectAll('circle').attr('fill', HIGHLIGHT_COLOR);
+    const labelCopy = g.select<SVGGElement>('g.label').node()!.cloneNode(true);
+    d3.select<SVGGElement, unknown>('#graph-g').node()!.appendChild(labelCopy);
+    d3.select(labelCopy as Element)
+      .attr('id', 'topLabel')
+      .attr('pointer-events', 'none')
+      .select('text')
+      .attr('fill', HIGHLIGHT_COLOR)
+      .attr('font-weight', 'bold');
+  }
+
+  private undoHighlightLine(
+    g: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>,
+    originalColor: string
+  ) {
+    g.select('path').attr('stroke-width', 2).attr('stroke', originalColor);
+    g.selectAll('circle').attr('fill', originalColor);
+    d3.select<SVGGElement, unknown>('g#topLabel').remove();
   }
 
   private hasIntersection(a: string[], b: string[]): boolean {
