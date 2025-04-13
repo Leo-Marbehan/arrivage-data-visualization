@@ -16,6 +16,10 @@ import {
 } from '../../models/organizations.model';
 import { Order } from '../../models/orders.model';
 import { MatCheckbox } from '@angular/material/checkbox';
+import {
+  MatButtonToggle,
+  MatButtonToggleGroup,
+} from '@angular/material/button-toggle';
 
 interface Scales {
   x: d3.ScaleTime<number, number, never>;
@@ -51,7 +55,12 @@ interface MonthData {
 @Component({
   selector: 'app-visualization-5-page',
   standalone: true,
-  imports: [ToolbarComponent, MatCheckbox],
+  imports: [
+    ToolbarComponent,
+    MatCheckbox,
+    MatButtonToggleGroup,
+    MatButtonToggle,
+  ],
   templateUrl: './visualization-5-page.component.html',
   styleUrl: './visualization-5-page.component.scss',
 })
@@ -63,6 +72,7 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
   private readonly groupedData: CategoryData[];
   private filteredCategories: CategoryData[] = [];
   private filteredTotal: MonthData[] = [];
+  private categoriesView = false;
   private dimensions = { width: 0, height: 0 };
 
   get displayedCategories(): VendorProductCategory[] {
@@ -94,6 +104,11 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
   toggleFilter(filter: Filter, displayed: boolean) {
     filter.displayed = displayed;
     this.filterData();
+    this.updateChart();
+  }
+
+  changeView(categoriesView: boolean) {
+    this.categoriesView = categoriesView;
     this.updateChart();
   }
 
@@ -227,15 +242,17 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
       this.dimensions.width,
       this.dimensions.height
     );
-    this.filteredCategories.forEach(category =>
-      this.drawLine(
-        translateVendorProductCategory(category.name),
-        'gray',
-        category.ordersPerMonth,
-        scales
-      )
-    );
-    if (this.filteredTotal.length > 0) {
+
+    if (this.categoriesView) {
+      this.filteredCategories.forEach(category =>
+        this.drawLine(
+          translateVendorProductCategory(category.name),
+          'gray',
+          category.ordersPerMonth,
+          scales
+        )
+      );
+    } else if (this.filteredTotal.length > 0) {
       this.drawLine('Total', 'black', this.filteredTotal, scales);
     }
   }
@@ -245,9 +262,10 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
     const xScale = d3
       .scaleTime()
       .domain(
-        d3.extent(this.filteredTotal, monthData => {
-          return monthData.date.getTime();
-        }) as [number, number]
+        d3.extent(this.filteredTotal, monthData => monthData.date) as [
+          Date,
+          Date,
+        ]
       )
       .range([0, width]);
     g.append('g').attr('transform', `translate(0, ${height})`).call(
@@ -262,12 +280,7 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
 
     const yScale = d3
       .scaleLinear()
-      .domain([
-        0,
-        d3.max(this.filteredTotal, monthData => {
-          return monthData.nbOrders;
-        }) as number,
-      ])
+      .domain([0, this.getMaxY()])
       .range([height, 0]);
     g.append('g').call(d3.axisLeft(yScale));
 
@@ -279,6 +292,23 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
       .attr('y', 10);
 
     return { x: xScale, y: yScale };
+  }
+
+  private getMaxY(): number {
+    if (this.categoriesView) {
+      return d3.max(
+        this.filteredCategories,
+        category =>
+          d3.max(
+            category.ordersPerMonth,
+            monthData => monthData.nbOrders
+          ) as number
+      ) as number;
+    } else {
+      return d3.max(this.filteredTotal, monthData => {
+        return monthData.nbOrders;
+      })!;
+    }
   }
 
   private drawLine(
