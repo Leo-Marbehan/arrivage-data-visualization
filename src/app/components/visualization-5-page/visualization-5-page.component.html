@@ -11,9 +11,9 @@
   
   <div class="visualization-section">
     <div class="controls">
-      <mat-button-toggle-group [value]="false" (change)="changeView($event.value)">
+      <mat-button-toggle-group class="toggle" [value]="false" (change)="changeView($event.value)">
         <mat-button-toggle [value]="false">Total</mat-button-toggle>
-        <mat-button-toggle [value]="true">Catégories</mat-button-toggle>
+        <mat-button-toggle [value]="true">Détail</mat-button-toggle>
       </mat-button-toggle-group>
       <p class="controls-title">
         Inclure les commandes contenant:

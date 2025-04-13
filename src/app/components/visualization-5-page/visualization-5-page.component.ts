@@ -66,6 +66,12 @@ interface MonthData {
 })
 export class VisualizationFivePageComponent implements AfterViewChecked {
   categoryFilters: Filter[];
+  SEASONS = [
+    { name: 'Hiver', start: '12-21', end: '03-20', color: '#C6DEF1' },
+    { name: 'Printemps', start: '03-21', end: '06-20', color: '#C9E4D5' },
+    { name: 'Été', start: '06-21', end: '09-20', color: '#FAEDCB' },
+    { name: 'Automne', start: '09-21', end: '12-20', color: '#F7D9C4' },
+  ];
   @ViewChild('chart', { static: true })
   private chartContainer!: ElementRef<HTMLDivElement>;
   private readonly data: ChartData[];
@@ -218,7 +224,7 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
     const containerWidth =
       this.chartContainer.nativeElement.getBoundingClientRect().width;
     const containerHeight = 550;
-    const margin = { top: 20, right: 130, bottom: 30, left: 250 };
+    const margin = { top: 30, right: 130, bottom: 30, left: 250 };
     this.dimensions = {
       width: containerWidth - margin.left - margin.right,
       height: containerHeight - margin.top - margin.bottom,
@@ -242,6 +248,8 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
       this.dimensions.width,
       this.dimensions.height
     );
+
+    this.drawSeasons(scales);
 
     if (this.categoriesView) {
       this.filteredCategories.forEach(category =>
@@ -295,8 +303,8 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
       .text('Nombre de commandes')
       .attr('class', 'axis-text')
       .attr('font-size', 12)
-      .attr('x', 10)
-      .attr('y', 10);
+      .attr('y', -5)
+      .style('text-anchor', 'middle');
 
     return { x: xScale, y: yScale };
   }
@@ -315,6 +323,42 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
       return d3.max(this.filteredTotal, monthData => {
         return monthData.nbOrders;
       })!;
+    }
+  }
+
+  private drawSeasons(scales: Scales): void {
+    const g = d3.select('#graph-g');
+
+    const startDate = scales.x.domain()[0];
+    const endDate = scales.x.domain()[1];
+    let currentYear = startDate.getFullYear();
+    while (new Date(`${currentYear}-01-01`) < endDate) {
+      this.SEASONS.forEach(season => {
+        const startDateStr = season.start.startsWith('12')
+          ? `${currentYear - 1}-${season.start}`
+          : `${currentYear}-${season.start}`;
+        const endDateStr = season.end.startsWith('12')
+          ? `${currentYear}-${season.end}`
+          : `${currentYear + (season.end.startsWith('01') || season.end.startsWith('02') || season.end.startsWith('03') ? 1 : 0)}-${season.end}`;
+
+        const seasonStart = new Date(startDateStr);
+        const seasonEnd = new Date(endDateStr);
+
+        if (seasonEnd > startDate && seasonStart < endDate) {
+          g.append('rect')
+            .attr('x', scales.x(d3.max([seasonStart, startDate]) as Date))
+            .attr('y', 0)
+            .attr(
+              'width',
+              scales.x(d3.min([seasonEnd, endDate]) as Date) -
+                scales.x(d3.max([seasonStart, startDate]) as Date)
+            )
+            .attr('height', this.dimensions.height)
+            .attr('fill', season.color)
+            .attr('opacity', 0.5);
+        }
+      });
+      currentYear++;
     }
   }
 
