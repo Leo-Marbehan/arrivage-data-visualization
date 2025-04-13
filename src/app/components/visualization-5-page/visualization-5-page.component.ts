@@ -17,6 +17,8 @@ import {
 } from '@angular/material/button-toggle';
 
 const HIGHLIGHT_COLOR = '#ba005d';
+const TOTAL_COLOR = 'black';
+const CATEGORY_COLOR = 'grey';
 
 interface Scales {
   x: d3.ScaleTime<number, number, never>;
@@ -69,6 +71,7 @@ export class VisualizationFivePageComponent implements OnInit {
     { name: 'Été', start: '06-21', end: '09-20', color: '#FAEDCB' },
     { name: 'Automne', start: '09-21', end: '12-20', color: '#F7D9C4' },
   ];
+  highlightedCategory?: VendorProductCategory;
   @ViewChild('chart', { static: true })
   private chartContainer!: ElementRef<HTMLDivElement>;
   private readonly data: ChartData[];
@@ -105,10 +108,16 @@ export class VisualizationFivePageComponent implements OnInit {
   }
 
   toggleFilter(filter: Filter, displayed: boolean) {
+    if (!displayed) {
+      this.onCheckboxMouseLeave(filter.category);
+    }
     filter.displayed = displayed;
     this.filterData();
     this.createChart();
     // TODO: updateChart
+    if (displayed) {
+      this.onCheckboxMouseEnter(filter.category);
+    }
   }
 
   changeView(categoriesView: boolean) {
@@ -117,17 +126,17 @@ export class VisualizationFivePageComponent implements OnInit {
     // TODO: updateChart
   }
 
-  highlightCategory(category: string) {
-    if (d3.select(`#${category}`).node()) {
-      this.highlightLine(d3.select(`#${category}`));
+  onCheckboxMouseEnter(category: VendorProductCategory) {
+    if (this.categoriesView && this.displayedCategories.includes(category)) {
+      this.highlightCategory(category);
     }
   }
 
-  undoHighlightCategory(category: string) {
-    if (d3.select(`#${category}`).node()) {
-      this.undoHighlightLine(
-        d3.select(`#${category}`),
-        this.categoriesView ? 'grey' : 'black'
+  onCheckboxMouseLeave(category: VendorProductCategory) {
+    if (this.categoriesView && this.displayedCategories.includes(category)) {
+      this.undoHighlightCategory(
+        category,
+        this.categoriesView ? CATEGORY_COLOR : TOTAL_COLOR
       );
     }
   }
@@ -267,10 +276,16 @@ export class VisualizationFivePageComponent implements OnInit {
 
     if (this.categoriesView) {
       this.filteredCategories.forEach(category =>
-        this.drawLine(category.name, 'gray', category.ordersPerMonth, scales)
+        this.drawLine(
+          translateVendorProductCategory(category.name),
+          CATEGORY_COLOR,
+          category.ordersPerMonth,
+          scales,
+          category.name
+        )
       );
     } else if (this.filteredTotal.length > 0) {
-      this.drawLine('Total', 'black', this.filteredTotal, scales);
+      this.drawLine('Total', TOTAL_COLOR, this.filteredTotal, scales);
     }
   }
 
@@ -375,16 +390,22 @@ export class VisualizationFivePageComponent implements OnInit {
     name: string,
     color: string,
     data: MonthData[],
-    scales: Scales
+    scales: Scales,
+    category?: VendorProductCategory
   ) {
     const g = d3
       .select('#graph-g')
       .append('g')
-      .attr('id', name)
+      .attr('id', category ? category : name)
       .attr('stroke', color)
-      .attr('fill', color)
-      .on('mouseenter', () => this.highlightLine(g))
-      .on('mouseleave', () => this.undoHighlightLine(g, color));
+      .attr('fill', color);
+
+    if (category) {
+      g.on('mouseenter', () => this.highlightCategory(category)).on(
+        'mouseleave',
+        () => this.undoHighlightCategory(category, color)
+      );
+    }
 
     g.append('path')
       .datum(data)
@@ -420,11 +441,7 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('y', scales.y(lastMonth.nbOrders) + 4)
       .attr('stroke', 'none')
       .style('font-size', 12)
-      .text(
-        (VENDOR_PRODUCT_CATEGORIES as string[]).includes(name)
-          ? translateVendorProductCategory(name as VendorProductCategory)
-          : name
-      );
+      .text(name);
     const textDims = label.select<SVGTextElement>('text').node()!.getBBox();
     label
       .insert('rect', ':first-child')
@@ -436,9 +453,8 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('stroke', 'none');
   }
 
-  private highlightLine(
-    g: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>
-  ) {
+  private highlightCategory(category: VendorProductCategory) {
+    const g = d3.select<SVGGElement, unknown>(`#${category}`);
     g.select('path').attr('stroke-width', 3).attr('stroke', HIGHLIGHT_COLOR);
     g.selectAll('circle').attr('fill', HIGHLIGHT_COLOR);
     g.select('g.label')
@@ -446,18 +462,21 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('fill', HIGHLIGHT_COLOR)
       .attr('font-weight', 'bold');
     d3.select<SVGGElement, unknown>('#graph-g').node()!.appendChild(g.node()!);
+    this.highlightedCategory = category;
   }
 
-  private undoHighlightLine(
-    g: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>,
+  private undoHighlightCategory(
+    category: VendorProductCategory,
     originalColor: string
   ) {
+    const g = d3.select<SVGGElement, unknown>(`#${category}`);
     g.select('path').attr('stroke-width', 2).attr('stroke', originalColor);
     g.selectAll('circle').attr('fill', originalColor);
     g.select('g.label')
       .select('text')
       .attr('fill', originalColor)
       .attr('font-weight', 'normal');
+    this.highlightedCategory = undefined;
   }
 
   private hasIntersection(a: string[], b: string[]): boolean {

@@ -20,10 +20,11 @@
       </p>
       @for (filter of categoryFilters; track $index) {
         <mat-checkbox
-          (mouseenter)="highlightCategory(filter.category)"
-          (mouseleave)="undoHighlightCategory(filter.category)"
+          (mouseenter)="onCheckboxMouseEnter(filter.category)"
+          (mouseleave)="onCheckboxMouseLeave(filter.category)"
           color="warm"
           class="checkbox"
+          [class.hovered] = "filter.category === highlightedCategory"
           [checked]="filter.displayed"
           (change)="toggleFilter(filter, $event.checked)"
         >

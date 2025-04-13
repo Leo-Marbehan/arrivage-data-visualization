@@ -54,6 +54,10 @@
   margin-left: -10px;
 }
 
+.checkbox.hovered ::ng-deep label {
+  color: #ba005d;
+}
+
 ::ng-deep .mat-mdc-checkbox-ripple,
 ::ng-deep .mat-mdc-checkbox .mdc-checkbox__ripple {
   margin: 6px;
