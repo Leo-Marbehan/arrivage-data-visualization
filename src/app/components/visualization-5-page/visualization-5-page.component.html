@@ -28,6 +28,14 @@
           {{filter.name}}
         </mat-checkbox>
       }
+      <div class="legend">
+        @for (season of SEASONS; track $index) {
+          <div class="season">
+            <div class="color" [style.background-color]="season.color"></div>
+            {{season.name}}
+          </div>
+        }
+      </div>
     </div>
     <div #chart></div>
   </div>

@@ -224,7 +224,7 @@ export class VisualizationFivePageComponent implements AfterViewChecked {
     const containerWidth =
       this.chartContainer.nativeElement.getBoundingClientRect().width;
     const containerHeight = 550;
-    const margin = { top: 30, right: 130, bottom: 30, left: 250 };
+    const margin = { top: 30, right: 130, bottom: 25, left: 250 };
     this.dimensions = {
       width: containerWidth - margin.left - margin.right,
       height: containerHeight - margin.top - margin.bottom,
