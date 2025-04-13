@@ -18,8 +18,12 @@ export class HomePageComponent {
   async navigateToViz1() {
     await this.router.navigate(['viz1']);
   }
-  
+
   async navigateToVisualization4() {
     await this.router.navigate(['visualization-4']);
+  }
+
+  async navigateToVisualization2() {
+    await this.router.navigate(['visualization-2']);
   }
 }

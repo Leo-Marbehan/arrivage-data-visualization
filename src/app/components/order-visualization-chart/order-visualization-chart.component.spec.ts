@@ -8,9 +8,8 @@ describe('OrderVisualizationChartComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OrderVisualizationChartComponent]
-    })
-    .compileComponents();
+      imports: [OrderVisualizationChartComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(OrderVisualizationChartComponent);
     component = fixture.componentInstance;

@@ -9,7 +9,7 @@ import {
   isVendorOrganization,
   translateBuyerOrganizationCategory,
   translateVendorProductCategory,
-  BuyerOrganizationCategory
+  BuyerOrganizationCategory,
 } from '../../models/organizations.model';
 
 @Component({
@@ -17,7 +17,7 @@ import {
   standalone: true,
   imports: [ToolbarComponent],
   templateUrl: './visualisation-1-page.component.html',
-  styleUrls: ['./visualisation-1-page.component.scss']
+  styleUrls: ['./visualisation-1-page.component.scss'],
 })
 export class Visualisation1PageComponent implements OnInit {
   private readonly BUYER_TYPES = [
@@ -27,11 +27,11 @@ export class Visualisation1PageComponent implements OnInit {
     'artisan',
     'institution',
     'community_organization',
-    "distributor",
+    'distributor',
     'producer',
     'event_fest',
-    'purchasing_group'
-    ];
+    'purchasing_group',
+  ];
 
   private readonly COLORS = [
     '#FF6B6B',
@@ -43,7 +43,7 @@ export class Visualisation1PageComponent implements OnInit {
     '#9B59B6',
     '#3498DB',
     '#E67E22',
-    '#2ECC71'
+    '#2ECC71',
   ];
 
   constructor(
@@ -55,10 +55,10 @@ export class Visualisation1PageComponent implements OnInit {
   async ngOnInit() {
     try {
       this.loadingService.start('Chargement des données...');
-      
+
       await Promise.all([
         this.ordersService.isInitializedSignal(),
-        this.organizationsService.isInitializedSignal()
+        this.organizationsService.isInitializedSignal(),
       ]);
 
       const orders = this.ordersService.orders;
@@ -84,13 +84,11 @@ export class Visualisation1PageComponent implements OnInit {
   }
 
   createVisualization(orders: any[], organizations: any[]) {
-    
     // Filter orders to only include confirmed orders
-    const validOrders = orders.filter(order => 
-      order.allStatuses && 
-      order.allStatuses.includes('confirmed')
+    const validOrders = orders.filter(
+      order => order.allStatuses && order.allStatuses.includes('confirmed')
     );
-    
+
     // Create a map of organization IDs to their categories
     const orgMap = new Map<string, string>();
     organizations.forEach(o => {
@@ -102,13 +100,24 @@ export class Visualisation1PageComponent implements OnInit {
     // Count buyers per product type and buyer type
     const buyerCounts = new Map<string, Map<string, number>>();
     validOrders.forEach(order => {
-      const buyerOrg = organizations.find(o => o.id === order.buyerOrganizationId);
-      const vendorOrg = organizations.find(o => o.id === order.vendorOrganizationId);
-      
-      if (buyerOrg && isBuyerOrganization(buyerOrg) && vendorOrg && isVendorOrganization(vendorOrg)) {
+      const buyerOrg = organizations.find(
+        o => o.id === order.buyerOrganizationId
+      );
+      const vendorOrg = organizations.find(
+        o => o.id === order.vendorOrganizationId
+      );
+
+      if (
+        buyerOrg &&
+        isBuyerOrganization(buyerOrg) &&
+        vendorOrg &&
+        isVendorOrganization(vendorOrg)
+      ) {
         const buyerType = translateBuyerOrganizationCategory(buyerOrg.category);
-        const productCategories = vendorOrg.productCategories.map(cat => translateVendorProductCategory(cat));
-        
+        const productCategories = vendorOrg.productCategories.map(cat =>
+          translateVendorProductCategory(cat)
+        );
+
         productCategories.forEach(product => {
           if (!buyerCounts.has(product)) {
             buyerCounts.set(product, new Map());
@@ -125,20 +134,27 @@ export class Visualisation1PageComponent implements OnInit {
     // Group data by product type and organization category, summing the amounts
     const groupedData = d3.rollup(
       validOrders,
-      v => d3.rollup(
-        v,
-        vv => d3.sum(vv, d => d.totalAmountWithTaxes),
-        d => {
-          const buyerOrg = organizations.find(o => o.id === d.buyerOrganizationId);
-          return buyerOrg && isBuyerOrganization(buyerOrg) 
-            ? translateBuyerOrganizationCategory(buyerOrg.category)
-            : 'Unknown';
-        }
-      ),
+      v =>
+        d3.rollup(
+          v,
+          vv => d3.sum(vv, d => d.totalAmountWithTaxes),
+          d => {
+            const buyerOrg = organizations.find(
+              o => o.id === d.buyerOrganizationId
+            );
+            return buyerOrg && isBuyerOrganization(buyerOrg)
+              ? translateBuyerOrganizationCategory(buyerOrg.category)
+              : 'Unknown';
+          }
+        ),
       d => {
-        const vendorOrg = organizations.find(o => o.id === d.vendorOrganizationId);
+        const vendorOrg = organizations.find(
+          o => o.id === d.vendorOrganizationId
+        );
         if (vendorOrg && isVendorOrganization(vendorOrg)) {
-          return vendorOrg.productCategories.map(cat => translateVendorProductCategory(cat));
+          return vendorOrg.productCategories.map(cat =>
+            translateVendorProductCategory(cat)
+          );
         }
         return ['Unknown'];
       }
@@ -158,11 +174,17 @@ export class Visualisation1PageComponent implements OnInit {
       });
     });
 
-    const productLabels = Array.from(flattenedData.keys()).filter(label => label !== 'Unknown');
-    
-    const buyerTypes = Array.from(new Set(Array.from(flattenedData.values())
-      .flatMap(m => Array.from(m.keys()))
-      .filter(type => type !== 'Unknown')));
+    const productLabels = Array.from(flattenedData.keys()).filter(
+      label => label !== 'Unknown'
+    );
+
+    const buyerTypes = Array.from(
+      new Set(
+        Array.from(flattenedData.values())
+          .flatMap(m => Array.from(m.keys()))
+          .filter(type => type !== 'Unknown')
+      )
+    );
 
     // Calculate total cost for each product
     const productTotals = new Map<string, number>();
@@ -200,14 +222,19 @@ export class Visualisation1PageComponent implements OnInit {
       return result;
     });
 
-    const nonZeroSeries = buyerTypes.filter(type => 
+    const nonZeroSeries = buyerTypes.filter(type =>
       dataStacked.some(d => d[type] > 0)
     );
 
-    const stack = d3.stack<any>()
-      .keys(nonZeroSeries)(dataStacked);
+    const stack = d3.stack<any>().keys(nonZeroSeries)(dataStacked);
 
-    this.renderChart(stack, sortedProductLabels, color, dataStacked, buyerCounts);
+    this.renderChart(
+      stack,
+      sortedProductLabels,
+      color,
+      dataStacked,
+      buyerCounts
+    );
   }
 
   renderChart(
@@ -218,10 +245,12 @@ export class Visualisation1PageComponent implements OnInit {
     buyerCounts: Map<string, Map<string, number>>
   ) {
     const svg = d3.select('svg#chart');
-    const container = d3.select('.visualization-container').node() as HTMLElement;
+    const container = d3
+      .select('.visualization-container')
+      .node() as HTMLElement;
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
-    
+
     const width = containerWidth - 40;
     const height = containerHeight - 100;
     const margin = { top: 100, right: 150, bottom: 80, left: 250 };
@@ -236,7 +265,8 @@ export class Visualisation1PageComponent implements OnInit {
 
     svg.selectAll('*').remove();
 
-    svg.append('text')
+    svg
+      .append('text')
       .attr('x', width / 12)
       .attr('y', 100)
       .attr('font-size', '16px')
@@ -244,9 +274,7 @@ export class Visualisation1PageComponent implements OnInit {
       .attr('text-anchor', 'middle')
       .text('Type de produits');
 
-    const x = d3
-      .scaleLinear()
-      .range([margin.left, width - margin.right]);
+    const x = d3.scaleLinear().range([margin.left, width - margin.right]);
 
     const y = d3
       .scaleBand()
@@ -255,32 +283,39 @@ export class Visualisation1PageComponent implements OnInit {
       .padding(0.2);
 
     // Calculate the maximum value from the data
-    const maxValue = d3.max(dataStacked, d => {
-      let total = 0;
-      buyerTypes.forEach(type => {
-        total += d[type] || 0;
-      });
-      return total;
-    }) || 0;
+    const maxValue =
+      d3.max(dataStacked, d => {
+        let total = 0;
+        buyerTypes.forEach(type => {
+          total += d[type] || 0;
+        });
+        return total;
+      }) || 0;
 
     x.domain([0, maxValue * 1.1]);
 
     const tickCount = 8;
     const tickStep = Math.ceil(maxValue / tickCount / 100) * 100;
-    const tickValues = Array.from({ length: tickCount + 1 }, (_, i) => i * tickStep);
+    const tickValues = Array.from(
+      { length: tickCount + 1 },
+      (_, i) => i * tickStep
+    );
 
-    const xAxis = d3.axisBottom(x)
+    const xAxis = d3
+      .axisBottom(x)
       .tickValues(tickValues)
       .tickFormat(d => `${d}`)
       .tickSize(10);
 
-    svg.append('g')
+    svg
+      .append('g')
       .attr('transform', `translate(0,${height - margin.bottom})`)
       .call(xAxis)
       .selectAll('text')
       .style('font-size', '12px');
 
-    svg.append('text')
+    svg
+      .append('text')
       .attr('x', width / 2)
       .attr('y', height - margin.bottom + 50)
       .attr('text-anchor', 'middle')
@@ -288,7 +323,8 @@ export class Visualisation1PageComponent implements OnInit {
       .style('font-weight', 'bold')
       .text('Coût du produit (CAN)');
 
-    svg.append('g')
+    svg
+      .append('g')
       .attr('transform', `translate(${margin.left},0)`)
       .call(d3.axisLeft(y))
       .selectAll('text')
@@ -302,22 +338,27 @@ export class Visualisation1PageComponent implements OnInit {
       .append('text')
       .attr('x', 700)
       .attr('y', -10)
-      .text('Type d\'acheteur')
+      .text("Type d'acheteur")
       .style('font-size', '16px')
       .style('font-weight', 'bold')
       .style('fill', '#333');
 
     const legendItemWidth = 180;
-    const legendItemsPerRow = Math.floor((width - margin.left - margin.right) / legendItemWidth);
+    const legendItemsPerRow = Math.floor(
+      (width - margin.left - margin.right) / legendItemWidth
+    );
     const legendRowHeight = 30;
 
     buyerTypes.forEach((type: string, i: number) => {
       const row = Math.floor(i / legendItemsPerRow);
       const col = i % legendItemsPerRow;
-      
+
       const legendItem = legendGroup
         .append('g')
-        .attr('transform', `translate(${col * legendItemWidth}, ${row * legendRowHeight})`);
+        .attr(
+          'transform',
+          `translate(${col * legendItemWidth}, ${row * legendRowHeight})`
+        );
 
       legendItem
         .append('rect')
@@ -371,7 +412,12 @@ export class Visualisation1PageComponent implements OnInit {
       .join('g')
       .attr('fill', d => color(d.key));
 
-    let currentSegmentLabel: d3.Selection<SVGTextElement, unknown, HTMLElement, any> | null = null;
+    let currentSegmentLabel: d3.Selection<
+      SVGTextElement,
+      unknown,
+      HTMLElement,
+      any
+    > | null = null;
 
     bars
       .selectAll('rect')
@@ -400,7 +446,8 @@ export class Visualisation1PageComponent implements OnInit {
           if (!isTooltipVisible) {
             const product = d.data.product;
             const total = productTotals.get(product) || 0;
-            const percentage = total > 0 ? ((value / total) * 100).toFixed(0) : '0';
+            const percentage =
+              total > 0 ? ((value / total) * 100).toFixed(0) : '0';
             const buyerCount = buyerCounts.get(product)?.get(d.key) || 0;
 
             d3.select(this).attr('opacity', 0.8);
@@ -423,7 +470,9 @@ export class Visualisation1PageComponent implements OnInit {
             tooltip
               .style('display', 'block')
               .style('opacity', '1')
-              .html(`${d.key}<br>${Math.round(value)} CAD<br>${buyerCount} acheteurs`);
+              .html(
+                `${d.key}<br>${Math.round(value)} CAD<br>${buyerCount} acheteurs`
+              );
 
             isTooltipVisible = true;
           }
@@ -445,9 +494,7 @@ export class Visualisation1PageComponent implements OnInit {
           currentSegmentLabel.remove();
           currentSegmentLabel = null;
         }
-        tooltip
-          .style('opacity', '0')
-          .style('display', 'none');
+        tooltip.style('opacity', '0').style('display', 'none');
         isTooltipVisible = false;
       });
   }
