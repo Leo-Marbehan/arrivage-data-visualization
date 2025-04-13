@@ -26,7 +26,7 @@ interface Scales {
 }
 
 interface Filter {
-  category: VendorProductCategory;
+  categoryId: VendorProductCategory;
   name: string;
   displayed: boolean;
 }
@@ -37,12 +37,12 @@ interface ChartData {
 }
 
 interface DatesByCategory {
-  name: VendorProductCategory;
+  categoryId: VendorProductCategory;
   dates: Date[];
 }
 
 interface CategoryData {
-  name: VendorProductCategory;
+  categoryId: VendorProductCategory;
   ordersPerMonth: MonthData[];
 }
 
@@ -84,7 +84,7 @@ export class VisualizationFivePageComponent implements OnInit {
   get displayedCategories(): VendorProductCategory[] {
     return this.categoryFilters.reduce((displayedCategories, filter) => {
       if (filter.displayed) {
-        displayedCategories.push(filter.category);
+        displayedCategories.push(filter.categoryId);
       }
       return displayedCategories;
     }, [] as VendorProductCategory[]);
@@ -109,14 +109,14 @@ export class VisualizationFivePageComponent implements OnInit {
 
   toggleFilter(filter: Filter, displayed: boolean) {
     if (!displayed) {
-      this.onCheckboxMouseLeave(filter.category);
+      this.onCheckboxMouseLeave(filter.categoryId);
     }
     filter.displayed = displayed;
     this.filterData();
     this.createChart();
     // TODO: updateChart
     if (displayed) {
-      this.onCheckboxMouseEnter(filter.category);
+      this.onCheckboxMouseEnter(filter.categoryId);
     }
   }
 
@@ -126,26 +126,26 @@ export class VisualizationFivePageComponent implements OnInit {
     // TODO: updateChart
   }
 
-  onCheckboxMouseEnter(category: VendorProductCategory) {
-    if (this.categoriesView && this.displayedCategories.includes(category)) {
-      this.highlightCategory(category);
+  onCheckboxMouseEnter(categoryId: VendorProductCategory) {
+    if (this.categoriesView && this.displayedCategories.includes(categoryId)) {
+      this.highlightCategory(categoryId);
     }
   }
 
-  onCheckboxMouseLeave(category: VendorProductCategory) {
-    if (this.categoriesView && this.displayedCategories.includes(category)) {
+  onCheckboxMouseLeave(categoryId: VendorProductCategory) {
+    if (this.categoriesView && this.displayedCategories.includes(categoryId)) {
       this.undoHighlightCategory(
-        category,
+        categoryId,
         this.categoriesView ? CATEGORY_COLOR : TOTAL_COLOR
       );
     }
   }
 
   private createFilters(): Filter[] {
-    return VENDOR_PRODUCT_CATEGORIES.map(category => {
+    return VENDOR_PRODUCT_CATEGORIES.map(categoryId => {
       return {
-        category,
-        name: translateVendorProductCategory(category),
+        categoryId,
+        name: translateVendorProductCategory(categoryId),
         displayed: true,
       };
     });
@@ -181,13 +181,13 @@ export class VisualizationFivePageComponent implements OnInit {
 
   private groupByCategory(data: ChartData[]): DatesByCategory[] {
     return data.reduce((categoriesWithDates, order) => {
-      order.categories.forEach(categoryName => {
+      order.categories.forEach(categoryId => {
         const existing = categoriesWithDates.find(
-          category => category.name === categoryName
+          category => category.categoryId === categoryId
         );
         if (!existing) {
           categoriesWithDates.push({
-            name: categoryName,
+            categoryId,
             dates: [order.date],
           });
         } else {
@@ -201,7 +201,7 @@ export class VisualizationFivePageComponent implements OnInit {
   private groupByMonth(data: DatesByCategory[]): CategoryData[] {
     return data.map(category => {
       return {
-        name: category.name,
+        categoryId: category.categoryId,
         ordersPerMonth: category.dates
           .reduce((ordersPerMonth, date) => {
             const month = new Date(date.getFullYear(), date.getMonth());
@@ -222,7 +222,7 @@ export class VisualizationFivePageComponent implements OnInit {
 
   private filterData(): void {
     this.filteredCategories = this.groupedData.filter(category =>
-      this.displayedCategories.includes(category.name)
+      this.displayedCategories.includes(category.categoryId)
     );
     this.filteredTotal = Array.from(
       d3
@@ -277,11 +277,11 @@ export class VisualizationFivePageComponent implements OnInit {
     if (this.categoriesView) {
       this.filteredCategories.forEach(category =>
         this.drawLine(
-          translateVendorProductCategory(category.name),
+          translateVendorProductCategory(category.categoryId),
           CATEGORY_COLOR,
           category.ordersPerMonth,
           scales,
-          category.name
+          category.categoryId
         )
       );
     } else if (this.filteredTotal.length > 0) {
@@ -391,19 +391,19 @@ export class VisualizationFivePageComponent implements OnInit {
     color: string,
     data: MonthData[],
     scales: Scales,
-    category?: VendorProductCategory
+    categoryId?: VendorProductCategory
   ) {
     const g = d3
       .select('#graph-g')
       .append('g')
-      .attr('id', category ? category : name)
+      .attr('id', categoryId ? categoryId : name)
       .attr('stroke', color)
       .attr('fill', color);
 
-    if (category) {
-      g.on('mouseenter', () => this.highlightCategory(category)).on(
+    if (categoryId) {
+      g.on('mouseenter', () => this.highlightCategory(categoryId)).on(
         'mouseleave',
-        () => this.undoHighlightCategory(category, color)
+        () => this.undoHighlightCategory(categoryId, color)
       );
     }
 
@@ -453,8 +453,8 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('stroke', 'none');
   }
 
-  private highlightCategory(category: VendorProductCategory) {
-    const g = d3.select<SVGGElement, unknown>(`#${category}`);
+  private highlightCategory(categoryId: VendorProductCategory) {
+    const g = d3.select<SVGGElement, unknown>(`#${categoryId}`);
     g.select('path').attr('stroke-width', 3).attr('stroke', HIGHLIGHT_COLOR);
     g.selectAll('circle').attr('fill', HIGHLIGHT_COLOR);
     g.select('g.label')
@@ -462,14 +462,14 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('fill', HIGHLIGHT_COLOR)
       .attr('font-weight', 'bold');
     d3.select<SVGGElement, unknown>('#graph-g').node()!.appendChild(g.node()!);
-    this.highlightedCategory = category;
+    this.highlightedCategory = categoryId;
   }
 
   private undoHighlightCategory(
-    category: VendorProductCategory,
+    categoryId: VendorProductCategory,
     originalColor: string
   ) {
-    const g = d3.select<SVGGElement, unknown>(`#${category}`);
+    const g = d3.select<SVGGElement, unknown>(`#${categoryId}`);
     g.select('path').attr('stroke-width', 2).attr('stroke', originalColor);
     g.selectAll('circle').attr('fill', originalColor);
     g.select('g.label')
