@@ -20,7 +20,9 @@
       </p>
       @for (filter of categoryFilters; track $index) {
         <mat-checkbox
-        color="warm"
+          (mouseenter)="highlightCategory(filter.category)"
+          (mouseleave)="undoHighlightCategory(filter.category)"
+          color="warm"
           class="checkbox"
           [checked]="filter.displayed"
           (change)="toggleFilter(filter, $event.checked)"

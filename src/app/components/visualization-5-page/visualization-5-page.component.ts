@@ -117,6 +117,21 @@ export class VisualizationFivePageComponent implements OnInit {
     // TODO: updateChart
   }
 
+  highlightCategory(category: string) {
+    if (d3.select(`#${category}`).node()) {
+      this.highlightLine(d3.select(`#${category}`));
+    }
+  }
+
+  undoHighlightCategory(category: string) {
+    if (d3.select(`#${category}`).node()) {
+      this.undoHighlightLine(
+        d3.select(`#${category}`),
+        this.categoriesView ? 'grey' : 'black'
+      );
+    }
+  }
+
   private createFilters(): Filter[] {
     return VENDOR_PRODUCT_CATEGORIES.map(category => {
       return {
@@ -252,12 +267,7 @@ export class VisualizationFivePageComponent implements OnInit {
 
     if (this.categoriesView) {
       this.filteredCategories.forEach(category =>
-        this.drawLine(
-          translateVendorProductCategory(category.name),
-          'gray',
-          category.ordersPerMonth,
-          scales
-        )
+        this.drawLine(category.name, 'gray', category.ordersPerMonth, scales)
       );
     } else if (this.filteredTotal.length > 0) {
       this.drawLine('Total', 'black', this.filteredTotal, scales);
@@ -410,7 +420,11 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('y', scales.y(lastMonth.nbOrders) + 4)
       .attr('stroke', 'none')
       .style('font-size', 12)
-      .text(name);
+      .text(
+        (VENDOR_PRODUCT_CATEGORIES as string[]).includes(name)
+          ? translateVendorProductCategory(name as VendorProductCategory)
+          : name
+      );
     const textDims = label.select<SVGTextElement>('text').node()!.getBBox();
     label
       .insert('rect', ':first-child')
