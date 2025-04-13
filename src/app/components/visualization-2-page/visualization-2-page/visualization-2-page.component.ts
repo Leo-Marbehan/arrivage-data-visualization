@@ -32,7 +32,7 @@ export class Visualization2PageComponent implements OnInit {
   private readonly SPENDING_COLOR = '#2ca02c';
   private readonly OTHER_COLOR = '#888';
   private svg: any;
-  private margin = { top: 80, right: 150, bottom: 80, left: 100 };
+  private margin = { top: 80, right: 150, bottom: 80, left: 120 };
   private width = 0;
   private height = 0;
   private totalOrders = 0;
@@ -146,16 +146,13 @@ export class Visualization2PageComponent implements OnInit {
     const container = d3.select('.chart-container').node() as HTMLElement;
     if (!container) return;
 
-    // Utilisation de la largeur et hauteur du conteneur parent
+    // la largeur et hauteur du conteneur parent
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
 
-    // Réduction de la taille du graphique
-    this.width = Math.max(0, containerWidth * 0.9); // 90% du conteneur
-    this.height = Math.max(0, containerHeight * 0.8); // 80% du conteneur
-
-    // Ajustement des marges pour le centrage
-    const centerX = (containerWidth - this.width) / 2;
+    this.width = containerWidth - this.margin.left - this.margin.right;
+    this.height = containerHeight - this.margin.top - this.margin.bottom;
+    const centerX = 0;
 
     d3.select('svg#chart').remove();
 
@@ -163,17 +160,19 @@ export class Visualization2PageComponent implements OnInit {
       .select('.chart-container')
       .append('svg')
       .attr('id', 'chart')
-      .attr('width', containerWidth) // Prend toute la largeur du conteneur
-      .attr('height', containerHeight) // Prend toute la hauteur du conteneur
+      .attr('width', containerWidth)
+      .attr('height', containerHeight)
       .append('g')
-      .attr('transform', `translate(${centerX},${this.margin.top})`); // Centrage horizontal
+      .attr(
+        'transform',
+        `translate(${this.margin.left + centerX},${this.margin.top})`
+      );
 
     this.svg
       .append('text')
       .attr('x', this.width / 2)
-      .attr('y', this.height + this.margin.bottom - 10) // Position ajustée
+      .attr('y', this.height + this.margin.bottom - 20)
       .attr('text-anchor', 'middle')
-      .style('font-size', '12px')
       .style('font-weight', 'bold')
       .text('Catégorie');
 
@@ -188,7 +187,7 @@ export class Visualization2PageComponent implements OnInit {
 
     this.svg
       .append('text')
-      .attr('x', this.width / 2)
+      .attr('x', this.width / 2 + 10)
       .attr('y', -15)
       .attr('text-anchor', 'middle')
       .style('font-size', '14px')
@@ -219,23 +218,6 @@ export class Visualization2PageComponent implements OnInit {
       .append('g')
       .attr('class', 'y-axis')
       .call(d3.axisLeft(y).tickFormat(d => `${d}%`));
-
-    this.svg
-      .append('text')
-      .attr('x', this.width / 2)
-      .attr('y', this.height + this.margin.bottom - 10) // Position ajustée
-      .attr('text-anchor', 'middle')
-      .style('font-weight', 'bold')
-      .text('Catégorie');
-
-    this.svg
-      .append('text')
-      .attr('transform', 'rotate(-90)')
-      .attr('y', -60)
-      .attr('x', -this.height / 2)
-      .attr('text-anchor', 'middle')
-      .style('font-weight', 'bold')
-      .text('Pourcentage');
 
     const categoryGroups = this.svg
       .selectAll('.category-group')
@@ -295,7 +277,7 @@ export class Visualization2PageComponent implements OnInit {
     const legend = this.svg
       .append('g')
       .attr('class', 'legend')
-      .attr('transform', `translate(${this.width - 100}, -40)`);
+      .attr('transform', `translate(${this.width - 100}, -20)`);
 
     legend
       .append('rect')
