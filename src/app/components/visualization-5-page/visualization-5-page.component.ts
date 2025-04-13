@@ -425,16 +425,13 @@ export class VisualizationFivePageComponent implements OnInit {
   private highlightLine(
     g: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>
   ) {
-    g.select('path').attr('stroke-width', 3.5).attr('stroke', HIGHLIGHT_COLOR);
+    g.select('path').attr('stroke-width', 3).attr('stroke', HIGHLIGHT_COLOR);
     g.selectAll('circle').attr('fill', HIGHLIGHT_COLOR);
-    const labelCopy = g.select<SVGGElement>('g.label').node()!.cloneNode(true);
-    d3.select<SVGGElement, unknown>('#graph-g').node()!.appendChild(labelCopy);
-    d3.select(labelCopy as Element)
-      .attr('id', 'topLabel')
-      .attr('pointer-events', 'none')
+    g.select('g.label')
       .select('text')
       .attr('fill', HIGHLIGHT_COLOR)
       .attr('font-weight', 'bold');
+    d3.select<SVGGElement, unknown>('#graph-g').node()!.appendChild(g.node()!);
   }
 
   private undoHighlightLine(
@@ -443,7 +440,10 @@ export class VisualizationFivePageComponent implements OnInit {
   ) {
     g.select('path').attr('stroke-width', 2).attr('stroke', originalColor);
     g.selectAll('circle').attr('fill', originalColor);
-    d3.select<SVGGElement, unknown>('g#topLabel').remove();
+    g.select('g.label')
+      .select('text')
+      .attr('fill', originalColor)
+      .attr('font-weight', 'normal');
   }
 
   private hasIntersection(a: string[], b: string[]): boolean {
