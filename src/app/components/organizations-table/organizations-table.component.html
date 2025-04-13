@@ -5,155 +5,158 @@
 @let sortedOrganizations = sortedOrganizationsSignal();
 @let slicedOrganizations = slicedOrganizationsSignal();
 
-<section class="flex-column table">
-  <!-- MARK: Headers
+<section class="scrollable">
+  <section class="flex-column table">
+    <!-- MARK: Headers
   -->
-  <div class="flex-row align-cross-center header gap-0-5-rem">
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'id',
-        text: 'ID',
-        canSort: true,
-      }"></ng-container>
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'language',
-        text: 'Langage',
-        canSort: true,
-      }"></ng-container>
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'country',
-        text: 'Pays',
-        canSort: true,
-      }"></ng-container>
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'province',
-        text: 'Province',
-        canSort: true,
-      }"></ng-container>
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'region',
-        text: 'Région',
-        canSort: true,
-      }"></ng-container>
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'sub-region',
-        text: 'Sous-région',
-        canSort: true,
-      }"></ng-container>
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'city',
-        text: 'Ville',
-        canSort: true,
-      }"></ng-container>
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'creation-timestamp',
-        text: 'Date de création',
-        canSort: true,
-      }"></ng-container>
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'product-categories',
-        text: '[Vendeurs] Catégories de produits',
-        canSort: false,
-      }"></ng-container>
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'buyer-organization-category',
-        text: '[Acheteurs] Catégorie',
-        canSort: true,
-      }"></ng-container>
-    <ng-container
-      [ngTemplateOutlet]="header"
-      [ngTemplateOutletContext]="{
-        column: 'is-pro',
-        text: 'A un compte',
-        canSort: true,
-      }"></ng-container>
-  </div>
+    <div class="flex-row align-cross-center header gap-0-5-rem">
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'id',
+          text: 'ID',
+          canSort: true,
+        }"></ng-container>
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'language',
+          text: 'Langage',
+          canSort: true,
+        }"></ng-container>
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'country',
+          text: 'Pays',
+          canSort: true,
+        }"></ng-container>
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'province',
+          text: 'Province',
+          canSort: true,
+        }"></ng-container>
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'region',
+          text: 'Région',
+          canSort: true,
+        }"></ng-container>
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'sub-region',
+          text: 'Sous-région',
+          canSort: true,
+        }"></ng-container>
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'city',
+          text: 'Ville',
+          canSort: true,
+        }"></ng-container>
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'creation-timestamp',
+          text: 'Date de création',
+          canSort: true,
+        }"></ng-container>
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'product-categories',
+          text: '[Vendeurs] Catégories de produits',
+          canSort: false,
+        }"></ng-container>
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'buyer-organization-category',
+          text: '[Acheteurs] Catégorie',
+          canSort: true,
+        }"></ng-container>
+      <ng-container
+        [ngTemplateOutlet]="header"
+        [ngTemplateOutletContext]="{
+          column: 'is-pro',
+          text: 'A un compte',
+          canSort: true,
+        }"></ng-container>
+    </div>
 
-  <!-- MARK: Rows
+    <!-- MARK: Rows
   -->
-  @for (organization of slicedOrganizations; track organization.id) {
-    <mat-divider />
-    @defer (on viewport; prefetch on idle) {
-      <div class="flex-row align-cross-center gap-0-5-rem">
-        <span class="cell id" [matTooltip]="organization.id">{{
-          organization.id
-        }}</span>
-        <span class="cell language" [matTooltip]="organization.language">{{
-          organization.language
-        }}</span>
-        <span class="cell country" [matTooltip]="organization.country">{{
-          organization.country
-        }}</span>
+    @for (organization of slicedOrganizations; track organization.id) {
+      <mat-divider />
+      @defer (on viewport; prefetch on idle) {
+        <div class="flex-row align-cross-center gap-0-5-rem">
+          <span class="cell id" [matTooltip]="organization.id">{{
+            organization.id
+          }}</span>
+          <span class="cell language" [matTooltip]="organization.language">{{
+            organization.language
+          }}</span>
+          <span class="cell country" [matTooltip]="organization.country">{{
+            organization.country
+          }}</span>
 
-        <span class="cell province" [matTooltip]="organization.province">{{
-          organization.province
-        }}</span>
-        <span class="cell region" [matTooltip]="organization.region">{{
-          organization.region
-        }}</span>
-        <span class="cell sub-region" [matTooltip]="organization.subRegion">{{
-          organization.subRegion
-        }}</span>
-        <span class="cell city" [matTooltip]="organization.city">{{
-          organization.city
-        }}</span>
-        <span
-          class="cell creation-timestamp"
-          [matTooltip]="organization.creationTimestamp.toLocaleDateString()"
-          >{{ organization.creationTimestamp.toLocaleDateString() }}</span
-        >
+          <span class="cell province" [matTooltip]="organization.province">{{
+            organization.province
+          }}</span>
+          <span class="cell region" [matTooltip]="organization.region">{{
+            organization.region
+          }}</span>
+          <span class="cell sub-region" [matTooltip]="organization.subRegion">{{
+            organization.subRegion
+          }}</span>
+          <span class="cell city" [matTooltip]="organization.city">{{
+            organization.city
+          }}</span>
+          <span
+            class="cell creation-timestamp"
+            [matTooltip]="organization.creationTimestamp.toLocaleDateString()"
+            >{{ organization.creationTimestamp.toLocaleDateString() }}</span
+          >
 
-        @let vendorOrganization = getVendorOrganization(organization);
-        @let vendorProductCategories =
-          vendorOrganization !== null
-            ? getVendorProductCategories(vendorOrganization)
-            : '-';
-        <span
-          class="cell product-categories"
-          [matTooltip]="vendorProductCategories">
-          {{ vendorProductCategories }}
-        </span>
+          @let vendorOrganization = getVendorOrganization(organization);
+          @let vendorProductCategories =
+            vendorOrganization !== null
+              ? getVendorProductCategories(vendorOrganization)
+              : '-';
+          <span
+            class="cell product-categories"
+            [matTooltip]="vendorProductCategories">
+            {{ vendorProductCategories }}
+          </span>
 
-        @let buyerOrganization = getBuyerOrganization(organization);
-        @let buyerOrganizationCategory =
-          buyerOrganization !== null
-            ? getBuyerOrganizationCategory(buyerOrganization)
-            : '-';
-        <span
-          class="cell buyer-organization-category"
-          [matTooltip]="buyerOrganizationCategory"
-          >{{ buyerOrganizationCategory }}
-        </span>
+          @let buyerOrganization = getBuyerOrganization(organization);
+          @let buyerOrganizationCategory =
+            buyerOrganization !== null
+              ? getBuyerOrganizationCategory(buyerOrganization)
+              : '-';
+          <span
+            class="cell buyer-organization-category"
+            [matTooltip]="buyerOrganizationCategory"
+            >{{ buyerOrganizationCategory }}
+          </span>
 
-        @let isPro =
-          buyerOrganization !== null && buyerOrganization.isPro ? 'Oui' : 'Non';
-        <span class="cell is-pro" [matTooltip]="isPro">{{ isPro }} </span>
-      </div>
-    } @placeholder {
-      <div class="cell"></div>
+          @let isPro =
+            buyerOrganization !== null && buyerOrganization.isPro
+              ? 'Oui'
+              : 'Non';
+          <span class="cell is-pro" [matTooltip]="isPro">{{ isPro }} </span>
+        </div>
+      } @placeholder {
+        <div class="cell"></div>
+      }
     }
-  }
+  </section>
 </section>
-
 <mat-paginator
   [length]="sortedOrganizations.length"
   [pageSize]="INITIAL_PAGE_SIZE"

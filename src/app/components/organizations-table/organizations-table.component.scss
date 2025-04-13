@@ -77,6 +77,10 @@ mat-divider {
   min-width: calc(1280px - 2 * 2rem);
 }
 
+.scrollable {
+  overflow-x: auto;
+}
+
 mat-paginator {
   background-color: transparent;
 }
