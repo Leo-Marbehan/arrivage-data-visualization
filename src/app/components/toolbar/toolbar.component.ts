@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router } from '@angular/router';
+import { Navigation } from '../../classes/navigation.class';
 
 @Component({
   selector: 'app-toolbar',
@@ -11,35 +12,8 @@ import { Router } from '@angular/router';
   templateUrl: './toolbar.component.html',
   styleUrl: './toolbar.component.scss',
 })
-export class ToolbarComponent {
-  constructor(private readonly router: Router) {}
-
-  async navigateToHome() {
-    await this.router.navigate(['home']);
-  }
-
-  async navigateToRawData() {
-    await this.router.navigate(['raw-data']);
-  }
-
-  async navigateToViz1() {
-    console.log('Navigating to viz1...');
-    await this.router.navigate(['viz1']);
-  }
-
-  async navigateToVisualization3() {
-    await this.router.navigate(['visualization-3']);
-  }
-
-  async navigateToVisualization4() {
-    await this.router.navigate(['visualization-4']);
-  }
-
-  async navigateToVisualization5() {
-    await this.router.navigate(['visualization-5']);
-  }
-
-  async navigateToVisualization2() {
-    await this.router.navigate(['visualization-2']);
+export class ToolbarComponent extends Navigation {
+  constructor(router: Router) {
+    super(router);
   }
 }

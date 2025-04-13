@@ -4,29 +4,34 @@
     <span>Page principale</span>
   </button>
 
-  <button mat-button (click)="navigateToViz1()">
+  <button mat-button (click)="navigateToVisualization(1)">
     <mat-icon>bar_chart</mat-icon>
     <span>Visualisation 1</span>
   </button>
 
-  <button mat-button (click)="navigateToVisualization2()">
+  <button mat-button (click)="navigateToVisualization(2)" disabled>
     <mat-icon>bar_chart</mat-icon>
     <span>Visualisation 2</span>
   </button>
 
-  <button mat-button (click)="navigateToVisualization3()">
+  <button mat-button (click)="navigateToVisualization(3)" disabled>
     <mat-icon>bar_chart</mat-icon>
     <span>Visualisation 3</span>
   </button>
 
-  <button mat-button (click)="navigateToVisualization4()">
+  <button mat-button (click)="navigateToVisualization(4)">
     <mat-icon>bar_chart</mat-icon>
     <span>Visualisation 4</span>
   </button>
 
-  <button mat-button (click)="navigateToVisualization5()">
+  <button mat-button (click)="navigateToVisualization(5)" disabled>
     <mat-icon>bar_chart</mat-icon>
     <span>Visualisation 5</span>
+  </button>
+
+  <button mat-button (click)="navigateToVisualization(6)">
+    <mat-icon>bar_chart</mat-icon>
+    <span>Visualisation 6</span>
   </button>
 
   <button mat-button (click)="navigateToRawData()">

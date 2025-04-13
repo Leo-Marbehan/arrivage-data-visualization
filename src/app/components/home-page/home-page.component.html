@@ -1,17 +1,34 @@
 <main class="flex-row align-center">
-  <section class="menu flex-column align-center">
+  <section class="menu flex-column align-center gap-1-rem">
     <h1 class="title">Visualisation de données</h1>
 
-    <article class="flex-column gap-1-rem">
-      <button mat-raised-button (click)="navigateToViz1()">Visualisation 1</button>
-      <button mat-raised-button (click)="navigateToVisualization2()">Visualisation 2</button>
-      <button mat-raised-button (click)="navigateToVisualization3()">Visualisation 3</button>
-      <button mat-raised-button (click)="navigateToVisualization4()">Visualisation 4</button>
-      <button mat-raised-button (click)="navigateToVisualization5()">Visualisation 5</button>
-      <button mat-raised-button (click)="navigateToRawData()">
-        Données brutes
-      </button>
-    </article>
+    <div class="flex-row gap-1-rem">
+      <article class="flex-column gap-1-rem">
+        <button mat-raised-button (click)="navigateToVisualization(1)">
+          Visualisation 1
+        </button>
+        <button mat-raised-button (click)="navigateToVisualization(2)">
+          Visualisation 2
+        </button>
+        <button mat-raised-button (click)="navigateToVisualization(3)">
+          Visualisation 3
+        </button>
+      </article>
+      <article class="flex-column gap-1-rem">
+        <button mat-raised-button (click)="navigateToVisualization(4)">
+          Visualisation 4
+        </button>
+        <button mat-raised-button (click)="navigateToVisualization(5)">
+          Visualisation 5
+        </button>
+        <button mat-raised-button (click)="navigateToVisualization(6)">
+          Visualisation 6
+        </button>
+      </article>
+    </div>
+    <button mat-raised-button (click)="navigateToRawData()">
+      Données brutes
+    </button>
   </section>
 
   <section class="flex-column align-center">

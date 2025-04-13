@@ -1,24 +1,22 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   ElementRef,
   OnInit,
   ViewChild,
-  signal,
   WritableSignal,
   computed,
   effect,
   inject,
+  signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import * as d3 from 'd3';
 import { OrdersService } from '../../services/orders.service';
 import { OrganizationsService } from '../../services/organizations.service';
-import { Order } from '../../models/orders.model';
-import { Organization } from '../../models/organizations.model';
 
 interface ChartData {
   id: string;
