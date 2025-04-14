@@ -26,7 +26,7 @@
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 
@@ -81,4 +81,26 @@
 .season .color {
   width: 30px;
   height: 20px;
+}
+
+#chart {
+  position: relative;
+}
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, -100%);
+  padding: 5px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.axis-text {
+  text-anchor: middle;
+}
+
+.label {
+  font-size: 12px;
 }

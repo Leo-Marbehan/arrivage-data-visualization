@@ -1,4 +1,10 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
 import * as d3 from 'd3';
 import { OrdersService } from '../../services/orders.service';
@@ -19,6 +25,7 @@ import {
   MARGIN,
   CONTAINER_HEIGHT,
   HIGHLIGHT_COLOR,
+  LABEL_COLOR,
 } from './visualization-5-page.constants';
 import {
   Filter,
@@ -41,6 +48,7 @@ import { VisualizationFiveUtils as utils } from './visualization-5-page.utils';
   ],
   templateUrl: './visualization-5-page.component.html',
   styleUrl: './visualization-5-page.component.scss',
+  encapsulation: ViewEncapsulation.None,
 })
 export class VisualizationFivePageComponent implements OnInit {
   @ViewChild('chart', { static: true })
@@ -86,7 +94,7 @@ export class VisualizationFivePageComponent implements OnInit {
   // -----------------------------------------------------------
   // MARK: Interactions
 
-  toggleFilter(filter: Filter, displayed: boolean) {
+  toggleFilter(filter: Filter, displayed: boolean): void {
     if (!displayed) {
       this.onCheckboxMouseLeave(filter.categoryId);
     }
@@ -99,13 +107,13 @@ export class VisualizationFivePageComponent implements OnInit {
     }
   }
 
-  changeView(isCategoriesView: boolean) {
+  changeView(isCategoriesView: boolean): void {
     this.isCategoriesView = isCategoriesView;
     this.createChart();
     // TODO: updateChart
   }
 
-  onCheckboxMouseEnter(categoryId: VendorProductCategory) {
+  onCheckboxMouseEnter(categoryId: VendorProductCategory): void {
     if (
       this.isCategoriesView &&
       this.displayedCategories.includes(categoryId)
@@ -114,7 +122,7 @@ export class VisualizationFivePageComponent implements OnInit {
     }
   }
 
-  onCheckboxMouseLeave(categoryId: VendorProductCategory) {
+  onCheckboxMouseLeave(categoryId: VendorProductCategory): void {
     if (
       this.isCategoriesView &&
       this.displayedCategories.includes(categoryId)
@@ -137,11 +145,17 @@ export class VisualizationFivePageComponent implements OnInit {
   // -----------------------------------------------------------
   // MARK: Creating the chart
 
-  private createChart() {
+  private createChart(): void {
     const dimensions = this.drawContainer();
     const scales = this.drawAxies(dimensions);
     this.drawSeasons(scales, dimensions);
     this.drawAllLines(scales);
+
+    d3.select(this.chartContainer.nativeElement)
+      .append('div')
+      .attr('class', 'tooltip')
+      .style('opacity', 0)
+      .style('background-color', LABEL_COLOR);
   }
 
   private drawContainer(): Dimensions {
@@ -210,8 +224,7 @@ export class VisualizationFivePageComponent implements OnInit {
       .text('Nombre de commandes')
       .attr('class', 'axis-text')
       .attr('font-size', 12)
-      .attr('y', -5)
-      .style('text-anchor', 'middle');
+      .attr('y', -5);
 
     return { x: xScale, y: yScale };
   }
@@ -274,7 +287,7 @@ export class VisualizationFivePageComponent implements OnInit {
     data: MonthData[],
     scales: Scales,
     categoryId?: VendorProductCategory
-  ) {
+  ): void {
     const g = d3
       .select('#graph-g')
       .append('g')
@@ -301,7 +314,7 @@ export class VisualizationFivePageComponent implements OnInit {
           .y(d => scales.y(d.nbOrders))
       );
 
-    g.selectAll('circle')
+    g.selectAll('dot')
       .data(data)
       .enter()
       .append('circle')
@@ -312,7 +325,9 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('cy', d => {
         return scales.y(d.nbOrders);
       })
-      .attr('r', 3);
+      .attr('r', 3)
+      .on('mouseenter', (_, d) => this.showToolTip(d, scales))
+      .on('mouseleave', () => this.hideToolTip());
 
     const lastMonth = data[data.length - 1];
 
@@ -322,14 +337,13 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('x', scales.x(lastMonth.date) + 10)
       .attr('y', scales.y(lastMonth.nbOrders) + 4)
       .attr('stroke', 'none')
-      .style('font-size', 12)
       .text(name);
     const textDims = label.select<SVGTextElement>('text').node()!.getBBox();
     label
       .insert('rect', ':first-child')
       .attr('x', textDims.x)
       .attr('y', textDims.y)
-      .attr('fill', '#F9F9F9')
+      .attr('fill', LABEL_COLOR)
       .attr('width', textDims.width)
       .attr('height', textDims.height)
       .attr('stroke', 'none');
@@ -338,14 +352,14 @@ export class VisualizationFivePageComponent implements OnInit {
   // -----------------------------------------------------------
   // MARK: Updating the chart
 
-  private updateChart() {
+  private updateChart(): void {
     // TODO
   }
 
   // -----------------------------------------------------------
   // MARK: Hover
 
-  private highlightCategory(categoryId: VendorProductCategory) {
+  private highlightCategory(categoryId: VendorProductCategory): void {
     const g = d3.select<SVGGElement, unknown>(`#${categoryId}`);
     g.select('path').attr('stroke-width', 3).attr('stroke', HIGHLIGHT_COLOR);
     g.selectAll('circle').attr('fill', HIGHLIGHT_COLOR);
@@ -360,7 +374,7 @@ export class VisualizationFivePageComponent implements OnInit {
   private undoHighlightCategory(
     categoryId: VendorProductCategory,
     originalColor: string
-  ) {
+  ): void {
     const g = d3.select<SVGGElement, unknown>(`#${categoryId}`);
     g.select('path').attr('stroke-width', 2).attr('stroke', originalColor);
     g.selectAll('circle').attr('fill', originalColor);
@@ -369,5 +383,26 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('fill', originalColor)
       .attr('font-weight', 'normal');
     this.highlightedCategory = undefined;
+  }
+
+  private showToolTip(d: MonthData, scales: Scales): void {
+    const dateText =
+      d.date.toLocaleString('default', {
+        month: 'long',
+      }) +
+      ' ' +
+      d.date.getFullYear();
+    const capitalizedDateText =
+      dateText.charAt(0).toUpperCase() + dateText.slice(1);
+    const ordersText = d.nbOrders + ' commande' + (d.nbOrders > 1 ? 's' : '');
+    d3.select('.tooltip')
+      .style('opacity', 1)
+      .html(capitalizedDateText + '<br/>' + ordersText)
+      .style('left', scales.x(d.date) + MARGIN.left + 'px')
+      .style('top', scales.y(d.nbOrders) + MARGIN.top - 10 + 'px');
+  }
+
+  private hideToolTip(): void {
+    d3.select('.tooltip').style('opacity', 0);
   }
 }

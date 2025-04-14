@@ -4,6 +4,7 @@ export const MARGIN = { top: 30, right: 130, bottom: 25, left: 250 };
 export const HIGHLIGHT_COLOR = '#ba005d';
 export const TOTAL_COLOR = 'black';
 export const CATEGORY_COLOR = 'grey';
+export const LABEL_COLOR = '#F9F9F9';
 
 export const SEASONS = [
   { name: 'Hiver', start: '12-21', end: '03-20', color: '#C6DEF1' },
