@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { HomePageComponent } from './components/home-page/home-page.component';
 import { RawDataPageComponent } from './components/raw-data-page/raw-data-page.component';
 import { VisualizationFourPageComponent } from './components/visualization-4-page/visualization-4-page.component';
+import { VisualizationFivePageComponent } from './components/visualization-5-page/visualization-5-page.component';
 import { Visualisation1PageComponent } from './components/visualisation-1-page/visualisation-1-page.component';
 import { Visualization2PageComponent } from './components/visualization-2-page/visualization-2-page/visualization-2-page.component';
 
@@ -11,6 +12,7 @@ export const routes: Routes = [
   { path: 'raw-data', component: RawDataPageComponent },
   { path: 'viz1', component: Visualisation1PageComponent },
   { path: 'visualization-4', component: VisualizationFourPageComponent },
+  { path: 'visualization-5', component: VisualizationFivePageComponent },
   { path: 'visualization-2', component: Visualization2PageComponent },
   { path: '**', redirectTo: 'home' },
 ];
