@@ -1,10 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  OnInit,
-  ViewChild,
-  ViewEncapsulation,
-} from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
 import * as d3 from 'd3';
 import { OrdersService } from '../../services/orders.service';
@@ -48,7 +42,6 @@ import { VisualizationFiveUtils as utils } from './visualization-5-page.utils';
   ],
   templateUrl: './visualization-5-page.component.html',
   styleUrl: './visualization-5-page.component.scss',
-  encapsulation: ViewEncapsulation.None,
 })
 export class VisualizationFivePageComponent implements OnInit {
   @ViewChild('chart', { static: true })
@@ -155,7 +148,15 @@ export class VisualizationFivePageComponent implements OnInit {
       .append('div')
       .attr('class', 'tooltip')
       .style('opacity', 0)
-      .style('background-color', LABEL_COLOR);
+      .style('background-color', LABEL_COLOR)
+      .style('position', 'absolute')
+      .style('pointer-events', 'none')
+      .style('transform', 'translate(-50%, -100%)')
+      .style('padding', '5px')
+      .style('text-align', 'center')
+      .style('font-size', '14px')
+      .style('line-height', '20px')
+      .style('border-radius', '5px');
   }
 
   private drawContainer(): Dimensions {
@@ -224,7 +225,8 @@ export class VisualizationFivePageComponent implements OnInit {
       .text('Nombre de commandes')
       .attr('class', 'axis-text')
       .attr('font-size', 12)
-      .attr('y', -5);
+      .attr('y', -5)
+      .style('text-anchor', 'middle');
 
     return { x: xScale, y: yScale };
   }
@@ -337,6 +339,7 @@ export class VisualizationFivePageComponent implements OnInit {
       .attr('x', scales.x(lastMonth.date) + 10)
       .attr('y', scales.y(lastMonth.nbOrders) + 4)
       .attr('stroke', 'none')
+      .style('font-size', 12)
       .text(name);
     const textDims = label.select<SVGTextElement>('text').node()!.getBBox();
     label

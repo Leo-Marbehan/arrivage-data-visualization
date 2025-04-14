@@ -87,16 +87,6 @@
   position: relative;
 }
 
-.tooltip {
-  position: absolute;
-  pointer-events: none;
-  transform: translate(-50%, -100%);
-  padding: 5px;
-  text-align: center;
-  font-size: 14px;
-  line-height: 20px;
-}
-
 .axis-text {
   text-anchor: middle;
 }
