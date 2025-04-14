@@ -1,1 +1,78 @@
 <app-toolbar />
+<main>
+  <header>
+    <h1>Visualisation 6: Évolution des utilisateurs</h1>
+    <p>
+      Ce graphique a pour but de visualiser l'évolution des utilisateurs au fil
+      du temps.
+    </p>
+
+    <section class="flex-column align-cross-start">
+      <p>
+        Trois courbes différentes permettent de montrer l'évolution du nombre
+        d'acheteurs, de vendeurs et de l'ensemble des utilisateurs.
+      </p>
+      @let dataModes = dataModesSignal();
+      <mat-button-toggle-group multiple (change)="onDataModesChange($event)">
+        <mat-button-toggle value="all" [checked]="dataModes.includes('all')">
+          Tous
+        </mat-button-toggle>
+        <mat-button-toggle
+          value="vendors"
+          [checked]="dataModes.includes('vendors')">
+          Vendeurs
+        </mat-button-toggle>
+        <mat-button-toggle
+          value="buyers"
+          [checked]="dataModes.includes('buyers')">
+          Acheteurs
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <p>
+        Deux modes d'affichage sont disponibles: empilé et continu. Le mode
+        continu permet de visualiser l'évolution depuis le lancement de
+        l'application jusqu'à aujourd'hui. Le mode empilé permet de comparer
+        l'évolution de chaque année.
+      </p>
+
+      @let viewMode = viewModeSignal();
+      <mat-button-toggle-group (change)="onViewModeChange($event)">
+        <mat-button-toggle value="stacked" [checked]="viewMode === 'stacked'">
+          Empilé
+        </mat-button-toggle>
+        <mat-button-toggle
+          value="continuous"
+          [checked]="viewMode === 'continuous'">
+          Continu
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <p>
+        Enfin, deux modes de calcul sont disponibles: cumulatif et absolu. Le
+        mode absolu se concentre sur le nombre de nouveaux utilisateurs chaque
+        mois, tandis que le mode cumulatif montre l'évolution totale des
+        utilisateurs au fil du temps.
+      </p>
+
+      @let countMode = countModeSignal();
+      <mat-button-toggle-group (change)="onCountModeChange($event)">
+        <mat-button-toggle
+          value="cumulative"
+          [checked]="countMode === 'cumulative'">
+          Cumulatif
+        </mat-button-toggle>
+        <mat-button-toggle
+          value="absolute"
+          [checked]="countMode === 'absolute'">
+          Absolu
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </section>
+  </header>
+
+  <svg
+    id="chart"
+    [style.width]="CHART_WIDTH"
+    [style.height]="CHART_HEIGHT"></svg>
+</main>

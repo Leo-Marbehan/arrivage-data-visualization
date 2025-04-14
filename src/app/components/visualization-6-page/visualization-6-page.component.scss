@@ -1,0 +1,14 @@
+@import '../../styles/flex.styles.scss';
+
+main {
+  padding: 2rem;
+
+  max-width: 1440px;
+
+  // Center the main content
+  margin: 0 auto;
+}
+
+p {
+  max-width: 800px;
+}
