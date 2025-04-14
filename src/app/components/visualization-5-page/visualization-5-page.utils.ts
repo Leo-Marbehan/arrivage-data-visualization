@@ -13,6 +13,7 @@ import {
   MonthData,
   Filter,
 } from './visualization-5-page.model';
+import { MAX_DATE, MIN_DATE } from './visualization-5-page.constants';
 
 export class VisualizationFiveUtils {
   // -----------------------------------------------------------
@@ -21,8 +22,8 @@ export class VisualizationFiveUtils {
   static cropDateRange(orders: Order[]): Order[] {
     return orders.filter(
       order =>
-        order.distributionDate.getTime() >= new Date(2021, 3).getTime() && // Min: April 2021
-        order.distributionDate.getTime() <= new Date(2025, 1).getTime() // Max: February 2025
+        order.distributionDate.getTime() >= new Date(MIN_DATE).getTime() &&
+        order.distributionDate.getTime() <= new Date(MAX_DATE).getTime()
     );
   }
 
