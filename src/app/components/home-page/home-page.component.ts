@@ -19,6 +19,10 @@ export class HomePageComponent {
     await this.router.navigate(['viz1']);
   }
   
+  async navigateToVisualization3() {
+    await this.router.navigate(['visualization-3']);
+  }
+  
   async navigateToVisualization4() {
     await this.router.navigate(['visualization-4']);
   }
