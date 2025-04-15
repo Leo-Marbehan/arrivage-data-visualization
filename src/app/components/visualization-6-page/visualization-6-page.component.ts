@@ -47,7 +47,7 @@ export class Visualization6PageComponent implements AfterViewInit {
   private readonly BUYERS_FIRST_COLOR = '#aaffaa';
   private readonly BUYERS_LAST_COLOR = '#008800';
 
-  // MARK: Filters
+  // Filters
   readonly dataModesSignal: WritableSignal<DataMode[]> = signal([
     'all',
     'vendors',
@@ -60,7 +60,7 @@ export class Visualization6PageComponent implements AfterViewInit {
 
   private readonly isInitializedSignal: WritableSignal<boolean> = signal(false);
 
-  // MARK: Legend
+  // Legend
   readonly legendSignal: WritableSignal<{
     years: string[];
     modes: {
@@ -69,7 +69,7 @@ export class Visualization6PageComponent implements AfterViewInit {
     }[];
   } | null> = signal(null);
 
-  // MARK: Highlight
+  // Highlight
   private readonly highlightedColorSignal: WritableSignal<{
     dataMode: DataMode;
     year: string;
@@ -170,7 +170,9 @@ export class Visualization6PageComponent implements AfterViewInit {
       })
       .reduce((acc, organization) => {
         const creationDate = new Date(organization.creationTimestamp);
-        const key = d3.timeFormat('%Y-%b')(creationDate);
+        const key = `${creationDate.getFullYear()}-${this.monthToShortString(
+          creationDate.getMonth()
+        )}`;
         const year = creationDate.getFullYear();
         const month = creationDate.getMonth();
         if (!organizationsCountByMonth.has(key)) {
@@ -210,6 +212,46 @@ export class Visualization6PageComponent implements AfterViewInit {
       default:
         return '';
     }
+  }
+
+  monthToShortString(month: number): string {
+    if (month < 0 || month > 11) {
+      throw new Error('Invalid month');
+    }
+    return [
+      'janv.',
+      'févr.',
+      'mars',
+      'avr.',
+      'mai',
+      'juin',
+      'juil.',
+      'août',
+      'sept.',
+      'oct.',
+      'nov.',
+      'déc.',
+    ][month];
+  }
+
+  monthToString(month: number): string {
+    if (month < 0 || month > 11) {
+      throw new Error('Invalid month');
+    }
+    return [
+      'janvier',
+      'février',
+      'mars',
+      'avril',
+      'mai',
+      'juin',
+      'juillet',
+      'août',
+      'septembre',
+      'octobre',
+      'novembre',
+      'décembre',
+    ][month];
   }
 
   // MARK: Rendering
@@ -297,8 +339,10 @@ export class Visualization6PageComponent implements AfterViewInit {
       .domain(
         organizations.map(organization =>
           viewMode === 'stacked'
-            ? d3.timeFormat('%b')(new Date(organization.creationTimestamp))
-            : d3.timeFormat('%Y-%b')(new Date(organization.creationTimestamp))
+            ? this.monthToShortString(organization.creationTimestamp.getMonth())
+            : `${organization.creationTimestamp.getFullYear()}-${this.monthToShortString(
+                organization.creationTimestamp.getMonth()
+              )}`
         )
       )
       .range([margin.left, width - margin.right])
@@ -455,6 +499,7 @@ export class Visualization6PageComponent implements AfterViewInit {
     });
   }
 
+  // MARK: +- Render Lines
   private renderData(
     organizationsCountByMonth: Map<
       string,
@@ -476,56 +521,6 @@ export class Visualization6PageComponent implements AfterViewInit {
     const entries = Array.from(organizationsCountByMonth.entries());
 
     console.log(viewMode, dataMode, shouldRender);
-
-    // Display the dots
-    svg
-      .selectAll(`circle.${dataMode}`)
-      .data(entries)
-      .enter()
-      .append('circle')
-      .attr('class', d => `${dataMode} year${d[1].year.toString()}`)
-      .attr('r', 5)
-      .attr('fill', d => colorScale(d[1].year.toString()))
-      .attr(
-        'cx',
-        d =>
-          (x(viewMode === 'stacked' ? d[0].split('-')[1] : d[0]) || 0) +
-          x.bandwidth() / 2
-      )
-      .attr('cy', d => y(d[1].count))
-      .on('mouseover', (_, d) => {
-        // Highlight the entire line
-        const year = d[1].year.toString();
-
-        const viewMode = this.viewModeSignal();
-        if (viewMode === 'stacked') {
-          this.highlightedColorSignal.set({
-            dataMode: dataMode,
-            year: year,
-          });
-        } else {
-          this.highlightedModeSignal.set(dataMode);
-        }
-      })
-      .on('mouseout', () => {
-        // Remove the highlight
-        this.highlightedColorSignal.set(null);
-        this.highlightedModeSignal.set(null);
-      });
-
-    // Animate the dots
-    svg
-      .selectAll(`circle.${dataMode}`)
-      .data(entries)
-      .transition()
-      .duration(1000)
-      .attr(
-        'cx',
-        (d, i) =>
-          (x(viewMode === 'stacked' ? d[0].split('-')[1] : d[0]) || 0) +
-          x.bandwidth() / 2
-      )
-      .attr('cy', d => y(d[1].count));
 
     // Display the lines
     const line = d3
@@ -551,7 +546,10 @@ export class Visualization6PageComponent implements AfterViewInit {
       .attr('fill', 'none')
       .attr('stroke', d => colorScale(d[1].year.toString()))
       .attr('stroke-width', 3)
-      .attr('d', (d, i) => (i === 0 ? line([d]) : line([entries[i - 1], d])))
+      .attr('d', (d, i) =>
+        i < entries.length - 1 ? line([entries[i + 1], d]) : line([d])
+      )
+      .attr('cursor', 'pointer')
       .on('mouseover', (_, d) => {
         // Highlight the entire line
         const year = d[1].year.toString();
@@ -578,8 +576,68 @@ export class Visualization6PageComponent implements AfterViewInit {
       .data(entries)
       .transition()
       .duration(1000)
-      .attr('d', (d, i) => (i === 0 ? line([d]) : line([entries[i - 1], d])));
+      .attr('d', (d, i) =>
+        i < entries.length - 1 ? line([entries[i + 1], d]) : line([d])
+      );
 
+    // Display the dots
+    svg
+      .selectAll(`circle.${dataMode}`)
+      .data(entries)
+      .enter()
+      .append('circle')
+      .attr('class', d => `${dataMode} year${d[1].year.toString()}`)
+      .attr('r', 5)
+      .attr('fill', d => colorScale(d[1].year.toString()))
+      .attr(
+        'cx',
+        d =>
+          (x(viewMode === 'stacked' ? d[0].split('-')[1] : d[0]) || 0) +
+          x.bandwidth() / 2
+      )
+      .attr('cy', d => y(d[1].count))
+      .attr('cursor', 'pointer')
+      .on('mouseover', (event: MouseEvent, d) => {
+        // Highlight the entire line
+        const year = d[1].year.toString();
+
+        const viewMode = this.viewModeSignal();
+        if (viewMode === 'stacked') {
+          this.highlightedColorSignal.set({
+            dataMode: dataMode,
+            year: year,
+          });
+        } else {
+          this.highlightedModeSignal.set(dataMode);
+        }
+
+        // Show the tooltip
+        this.showTooltip(event, d[1], dataMode);
+      })
+      .on('mouseout', () => {
+        // Remove the highlight
+        this.highlightedColorSignal.set(null);
+        this.highlightedModeSignal.set(null);
+
+        // Hide the tooltip
+        this.hideTooltip();
+      });
+
+    // Animate the dots
+    svg
+      .selectAll(`circle.${dataMode}`)
+      .data(entries)
+      .transition()
+      .duration(1000)
+      .attr(
+        'cx',
+        (d, i) =>
+          (x(viewMode === 'stacked' ? d[0].split('-')[1] : d[0]) || 0) +
+          x.bandwidth() / 2
+      )
+      .attr('cy', d => y(d[1].count));
+
+    // Hide the lines and dots if not in the selected mode
     if (!shouldRender) {
       svg.selectAll(`circle.${dataMode}`).attr('display', 'none');
       svg.selectAll(`path.${dataMode}`).attr('display', 'none');
@@ -589,6 +647,7 @@ export class Visualization6PageComponent implements AfterViewInit {
     }
   }
 
+  // MARK: +- Highlight Lines
   private highlightLine(dataMode: DataMode | null, year: string | null) {
     const svg = d3.select('#chart');
 
@@ -613,5 +672,35 @@ export class Visualization6PageComponent implements AfterViewInit {
       // Highlight for the mode and year
       svg.selectAll(`.${dataMode}.year${year}`).attr('opacity', 1);
     }
+  }
+
+  // MARK: +- Tooltip
+  private showTooltip(
+    event: MouseEvent,
+    data: { year: number; month: number; count: number },
+    dataMode: DataMode
+  ): void {
+    const month = this.monthToString(data.month);
+    d3
+      .select('#tooltip')
+      .style('display', 'block')
+      .style('position', 'absolute')
+      .style('pointer-events', 'none')
+      .style('background-color', '#fff')
+      .style('border', '1px solid #ccc')
+      .style('border-radius', '4px')
+      .style('padding', '10px')
+      .style('box-shadow', '0 2px 10px rgba(0, 0, 0, 0.1)')
+      .style('opacity', '0.8')
+      .style('left', `${event.pageX + 10}px`)
+      .style('top', `${event.pageY + 10}px`).html(`
+        <strong>${this.translateDataModeToString(dataMode)}</strong><br>
+        <strong>${month} ${data.year}</strong><br>
+        <strong>${data.count}</strong> organisations
+      `);
+  }
+
+  private hideTooltip(): void {
+    d3.select('#tooltip').style('display', 'none');
   }
 }
