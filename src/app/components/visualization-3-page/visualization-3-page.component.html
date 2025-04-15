@@ -9,23 +9,23 @@
       class="vertical-toggle-group"
       (change)="change_shown_data($event.value)">
       <mat-radio-button value="amount" [checked]="shown_data === 'amount'"
-        >Amounts</mat-radio-button
+        >Montant hors-taxes</mat-radio-button
       >
       <mat-radio-button
         value="tax_amount"
         [checked]="shown_data === 'tax_amount'"
-        >Taxed Amounts</mat-radio-button
+        >Montant avec taxes</mat-radio-button
       >
       <mat-radio-button
         value="distance"
-        [disabled]="true"
+        disabled
         [checked]="shown_data === 'distance'"
         >Distances</mat-radio-button
       >
       <mat-radio-button
         value="nbr_orders"
         [checked]="shown_data === 'nbr_orders'"
-        >Number of Orders</mat-radio-button
+        >Nombre de commandes</mat-radio-button
       >
     </mat-radio-group>
 
