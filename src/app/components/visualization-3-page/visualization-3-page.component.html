@@ -3,14 +3,16 @@
 <meta charset="utf-8">
   
 <div id="diagramme">
-    <mat-radio-group id="data-type-toggle" class="vertical-toggle-group" (change)="change_shown_data($event.value)" >
-        <mat-radio-button value="amount" [checked]="shown_data === 'amount'">Amounts</mat-radio-button>
-        <mat-radio-button value="tax_amount" [checked]="shown_data === 'tax_amount'">Taxed Amounts</mat-radio-button>
-        <mat-radio-button value="distance" [checked]="shown_data === 'distance'">Distances</mat-radio-button>
-        <mat-radio-button value="nbr_orders" [checked]="shown_data === 'nbr_orders'">Number of Orders</mat-radio-button>
-    </mat-radio-group>
-
-    <mat-radio-group id="subregion-toggle" class="vertical-toggle-group">
-        <mat-radio-button *ngFor="let region of regions" [value]="region" [checked]="expanded_region === region" (click)="toggle_expanded_region(region)" >{{region}}</mat-radio-button>
-    </mat-radio-group>
+    <div id="radio-group">
+        <mat-radio-group id="data-type-toggle" class="vertical-toggle-group" (change)="change_shown_data($event.value)" >
+            <mat-radio-button value="amount" [checked]="shown_data === 'amount'">Amounts</mat-radio-button>
+            <mat-radio-button value="tax_amount" [checked]="shown_data === 'tax_amount'">Taxed Amounts</mat-radio-button>
+            <mat-radio-button value="distance" [disabled]="true" [checked]="shown_data === 'distance'">Distances</mat-radio-button>
+            <mat-radio-button value="nbr_orders" [checked]="shown_data === 'nbr_orders'">Number of Orders</mat-radio-button>
+        </mat-radio-group>
+    
+        <mat-radio-group id="subregion-toggle" class="vertical-toggle-group">
+            <mat-radio-button *ngFor="let region of regions" [value]="region" [checked]="expanded_region === region" (click)="toggle_expanded_region(region)" >{{region}}</mat-radio-button>
+        </mat-radio-group>
+    </div>
 </div>

@@ -3,13 +3,15 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-evenly;
+    margin-left: 15%;
+    margin-right: 15%;
 }
 
 .vertical-toggle-group {
     display: flex;
     flex-direction: column;
     align-items: flex-start; /* optional: align text */
-    width: 300px;
+    width: 250px;
 }
 
 .vertical-toggle-group > * {
@@ -22,4 +24,10 @@
 
 #subregion-toggle {
     display: none;
+}
+
+#radio-group {
+    display: flex;
+    justify-content: row;
+    align-items: center;
 }

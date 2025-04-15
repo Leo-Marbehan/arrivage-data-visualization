@@ -164,12 +164,21 @@ export class Visualization3PageComponent implements OnInit {
             ? 'red'
             : this.colors![(d2 as any).source.index]
         );
+        d3.selectAll('.label').attr('fill', d2 =>
+          d1.index === (d2 as any).index
+            ? 'red'
+            : this.colors![(d2 as any).index]
+        );
       })
       .on('mouseout', (event, d1) => {
         d3.select(event.currentTarget).attr('fill', this.colors![d1.index]);
         d3.selectAll('.ribbon').attr(
           'fill',
           d2 => this.colors![(d2 as any).source.index]
+        );
+        d3.selectAll('.label').attr(
+          'fill',
+          d2 => this.colors![(d2 as any).index]
         );
       });
 
@@ -186,6 +195,7 @@ export class Visualization3PageComponent implements OnInit {
       )
       .attr('text-anchor', d => ((d as any).angle > Math.PI ? 'end' : 'start'))
       .text(d => this.names![d.index])
+      .classed('label', true)
       .attr('fill', d2 => this.colors![(d2 as any).index])
       .on('mouseover', (event, d1) => {
         // change all bars to red when any is hovered
@@ -247,6 +257,11 @@ export class Visualization3PageComponent implements OnInit {
             ? 'red'
             : this.colors![(d2 as any).index]
         );
+        d3.selectAll('.label').attr('fill', d2 =>
+          d1.source.index === (d2 as any).index
+            ? 'red'
+            : this.colors![(d2 as any).index]
+        );
       })
       .on('mouseout', (event, d1) => {
         d3.selectAll('.ribbon').attr(
@@ -254,6 +269,10 @@ export class Visualization3PageComponent implements OnInit {
           d2 => this.colors![(d2 as any).source.index]
         );
         d3.selectAll('.arc').attr(
+          'fill',
+          d2 => this.colors![(d2 as any).index]
+        );
+        d3.selectAll('.label').attr(
           'fill',
           d2 => this.colors![(d2 as any).index]
         );
@@ -415,11 +434,6 @@ export class Visualization3PageComponent implements OnInit {
         [...regions_to_subregions.get(key)!],
       ])
     );
-  }
-
-  toggle_data_subregions() {
-    // TODO: Insert or remove region of names
-    this.generate_matrix();
   }
 
   generate_matrix() {
