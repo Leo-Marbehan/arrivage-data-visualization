@@ -12,6 +12,8 @@ main {
 .legend {
   width: 300px;
 
+  cursor: pointer;
+
   & > div {
     & > span {
       border: 1px solid transparent;
@@ -28,7 +30,6 @@ main {
       }
 
       &.color-box:hover {
-        cursor: pointer;
         border: 1px solid yellow;
       }
     }

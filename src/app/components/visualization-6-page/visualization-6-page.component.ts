@@ -15,7 +15,6 @@ import {
   isVendorOrganization,
   Organization,
 } from '../../models/organizations.model';
-import { OrdersService } from '../../services/orders.service';
 import { OrganizationsService } from '../../services/organizations.service';
 import { ToolbarComponent } from '../toolbar/toolbar.component';
 
@@ -61,7 +60,7 @@ export class Visualization6PageComponent implements AfterViewInit {
 
   private readonly isInitializedSignal: WritableSignal<boolean> = signal(false);
 
-  // Legend
+  // MARK: Legend
   readonly legendSignal: WritableSignal<{
     years: string[];
     modes: {
@@ -70,11 +69,21 @@ export class Visualization6PageComponent implements AfterViewInit {
     }[];
   } | null> = signal(null);
 
+  // MARK: Highlight
+  private readonly highlightedColorSignal: WritableSignal<{
+    dataMode: DataMode;
+    year: string;
+  } | null> = signal(null);
+
+  private readonly highlightedYearSignal: WritableSignal<string | null> =
+    signal(null);
+
+  private readonly highlightedModeSignal: WritableSignal<DataMode | null> =
+    signal(null);
+
   // MARK: Constructor
-  constructor(
-    private readonly organizationsService: OrganizationsService,
-    private readonly ordersService: OrdersService
-  ) {
+  constructor(private readonly organizationsService: OrganizationsService) {
+    // React to changes in the filters
     effect(() => {
       const organizations = this.organizationsService.organizations;
 
@@ -85,6 +94,18 @@ export class Visualization6PageComponent implements AfterViewInit {
       this.isInitializedSignal();
 
       this.renderChart(organizations, dataModes, viewMode, countMode);
+    });
+
+    // React to changes in the highlighted color
+    effect(() => {
+      const highlightedColor = this.highlightedColorSignal();
+      const highlightedYear = this.highlightedYearSignal();
+      const highlightedMode = this.highlightedModeSignal();
+
+      this.highlightLine(
+        highlightedColor?.dataMode ?? highlightedMode,
+        highlightedColor?.year ?? highlightedYear
+      );
     });
   }
 
@@ -104,6 +125,20 @@ export class Visualization6PageComponent implements AfterViewInit {
 
   onCountModeChange(change: MatButtonToggleChange) {
     this.countModeSignal.set(change.value as CountMode);
+  }
+
+  onHighlightedColorChange(
+    highlightedColor: { dataMode: DataMode; year: string } | null
+  ) {
+    this.highlightedColorSignal.set(highlightedColor);
+  }
+
+  onHighlightedModeChange(highlightedMode: DataMode | null) {
+    this.highlightedModeSignal.set(highlightedMode);
+  }
+
+  onHighlightedYearChange(highlightedYear: string | null) {
+    this.highlightedYearSignal.set(highlightedYear);
   }
 
   // MARK: Helpers
@@ -418,11 +453,6 @@ export class Visualization6PageComponent implements AfterViewInit {
         },
       ],
     });
-
-    // TODO Hover on line make it highlighted and other lines dimmed
-    // TODO Hover on point make it highlighted and info tooltip
-    // TODO Hover on legend cell make line highlighted and other lines dimmed
-    // TODO Hover on legend line or column make lines highlighted and other lines dimmed
   }
 
   private renderData(
@@ -437,7 +467,7 @@ export class Visualization6PageComponent implements AfterViewInit {
     x: d3.ScaleBand<string>,
     y: d3.ScaleLinear<number, number>,
     colorScale: d3.ScaleOrdinal<string, string>,
-    className: string,
+    dataMode: DataMode,
     viewMode: ViewMode,
     shouldRender: boolean
   ) {
@@ -445,26 +475,47 @@ export class Visualization6PageComponent implements AfterViewInit {
 
     const entries = Array.from(organizationsCountByMonth.entries());
 
+    console.log(viewMode, dataMode, shouldRender);
+
     // Display the dots
     svg
-      .selectAll(`circle.${className}`)
+      .selectAll(`circle.${dataMode}`)
       .data(entries)
       .enter()
       .append('circle')
-      .attr('class', className)
+      .attr('class', d => `${dataMode} year${d[1].year.toString()}`)
       .attr('r', 5)
-      .attr('fill', (d, i) => colorScale(d[1].year.toString()))
+      .attr('fill', d => colorScale(d[1].year.toString()))
       .attr(
         'cx',
-        (d, i) =>
+        d =>
           (x(viewMode === 'stacked' ? d[0].split('-')[1] : d[0]) || 0) +
           x.bandwidth() / 2
       )
-      .attr('cy', d => y(d[1].count));
+      .attr('cy', d => y(d[1].count))
+      .on('mouseover', (_, d) => {
+        // Highlight the entire line
+        const year = d[1].year.toString();
+
+        const viewMode = this.viewModeSignal();
+        if (viewMode === 'stacked') {
+          this.highlightedColorSignal.set({
+            dataMode: dataMode,
+            year: year,
+          });
+        } else {
+          this.highlightedModeSignal.set(dataMode);
+        }
+      })
+      .on('mouseout', () => {
+        // Remove the highlight
+        this.highlightedColorSignal.set(null);
+        this.highlightedModeSignal.set(null);
+      });
 
     // Animate the dots
     svg
-      .selectAll(`circle.${className}`)
+      .selectAll(`circle.${dataMode}`)
       .data(entries)
       .transition()
       .duration(1000)
@@ -485,37 +536,82 @@ export class Visualization6PageComponent implements AfterViewInit {
           viewMode !== 'stacked' || i === 0 || data[i - 1][1].year === d[1].year
         );
       })
-      .x((d, i) => {
+      .x(d => {
         const xValue = viewMode === 'stacked' ? d[0].split('-')[1] : d[0];
         return (x(xValue) || 0) + x.bandwidth() / 2;
       })
-      .y((d, i) => y(d[1].count));
+      .y(d => y(d[1].count));
 
     svg
-      .selectAll(`path.${className}`)
+      .selectAll(`path.${dataMode}`)
       .data(entries)
       .enter()
       .append('path')
-      .attr('class', className)
+      .attr('class', d => `${dataMode} year${d[1].year.toString()}`)
       .attr('fill', 'none')
-      .attr('stroke', (d, i) => colorScale(d[1].year.toString()))
+      .attr('stroke', d => colorScale(d[1].year.toString()))
       .attr('stroke-width', 3)
-      .attr('d', (d, i) => (i === 0 ? line([d]) : line([entries[i - 1], d])));
+      .attr('d', (d, i) => (i === 0 ? line([d]) : line([entries[i - 1], d])))
+      .on('mouseover', (_, d) => {
+        // Highlight the entire line
+        const year = d[1].year.toString();
+
+        const viewMode = this.viewModeSignal();
+        if (viewMode === 'stacked') {
+          this.highlightedColorSignal.set({
+            dataMode: dataMode,
+            year: year,
+          });
+        } else {
+          this.highlightedModeSignal.set(dataMode);
+        }
+      })
+      .on('mouseout', () => {
+        // Remove the highlight
+        this.highlightedColorSignal.set(null);
+        this.highlightedModeSignal.set(null);
+      });
 
     // Animate the lines
     svg
-      .selectAll(`path.${className}`)
+      .selectAll(`path.${dataMode}`)
       .data(entries)
       .transition()
       .duration(1000)
       .attr('d', (d, i) => (i === 0 ? line([d]) : line([entries[i - 1], d])));
 
     if (!shouldRender) {
-      svg.selectAll(`circle.${className}`).attr('opacity', 0);
-      svg.selectAll(`path.${className}`).attr('opacity', 0);
+      svg.selectAll(`circle.${dataMode}`).attr('display', 'none');
+      svg.selectAll(`path.${dataMode}`).attr('display', 'none');
     } else {
-      svg.selectAll(`circle.${className}`).attr('opacity', 1);
-      svg.selectAll(`path.${className}`).attr('opacity', 1);
+      svg.selectAll(`circle.${dataMode}`).attr('display', 'block');
+      svg.selectAll(`path.${dataMode}`).attr('display', 'block');
+    }
+  }
+
+  private highlightLine(dataMode: DataMode | null, year: string | null) {
+    const svg = d3.select('#chart');
+
+    // Make everything visible
+    if (dataMode === null && year === null) {
+      svg.selectAll('circle').attr('opacity', 1);
+      svg.selectAll('path').attr('opacity', 1);
+      return;
+    }
+
+    // Make everything dimmed
+    svg.selectAll('circle').attr('opacity', 0.1);
+    svg.selectAll('path').attr('opacity', 0.1);
+
+    if (dataMode === null) {
+      // Highlight for the year
+      svg.selectAll(`.year${year}`).attr('opacity', 1);
+    } else if (year === null) {
+      // Highlight for the mode
+      svg.selectAll(`.${dataMode}`).attr('opacity', 1);
+    } else {
+      // Highlight for the mode and year
+      svg.selectAll(`.${dataMode}.year${year}`).attr('opacity', 1);
     }
   }
 }

@@ -76,25 +76,41 @@
         @let legend = legendSignal();
         @if (legend !== null) {
           <section class="legend flex-column">
+            <p>Légende interactive</p>
             <div class="flex-row">
               <!-- Empty container for alignment -->
               <span class="mode-column"></span>
               @for (year of legend.years; track year) {
-                <span class="year-column">{{ year }}</span>
+                <span
+                  class="year-column"
+                  (mouseenter)="onHighlightedYearChange(year)"
+                  (mouseleave)="onHighlightedYearChange(null)"
+                  >{{ year }}</span
+                >
               }
             </div>
 
             @for (mode of legend.modes; track mode.dataMode) {
               <div class="flex-row">
-                <span class="mode-column">{{
-                  translateDataModeToString(mode.dataMode)
-                }}</span>
+                <span
+                  class="mode-column"
+                  (mouseenter)="onHighlightedModeChange(mode.dataMode)"
+                  (mouseleave)="onHighlightedModeChange(null)"
+                  >{{ translateDataModeToString(mode.dataMode) }}</span
+                >
 
-                @for (color of mode.colors; track color) {
+                @for (color of mode.colors; track color; let index = $index) {
                   <span
                     class="year-column color-box"
                     [style.backgroundColor]="color"
-                    [style.display]="'inline-block'"></span>
+                    [style.display]="'inline-block'"
+                    (mouseenter)="
+                      onHighlightedColorChange({
+                        dataMode: mode.dataMode,
+                        year: legend.years[index],
+                      })
+                    "
+                    (mouseleave)="onHighlightedColorChange(null)"></span>
                 }
               </div>
             }
