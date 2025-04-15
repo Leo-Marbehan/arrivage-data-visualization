@@ -1,13 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import * as d3 from 'd3';
+import { Order } from '../../../models/orders.model';
 import {
+  BuyerOrganization,
   BuyerOrganizationCategory,
   isBuyerOrganization,
   translateBuyerOrganizationCategory,
 } from '../../../models/organizations.model';
-import { OrganizationsService } from '../../../services/organizations.service';
-import { OrdersService } from '../../../services/orders.service';
 import { LoadingService } from '../../../services/loading.service';
+import { OrdersService } from '../../../services/orders.service';
+import { OrganizationsService } from '../../../services/organizations.service';
 import { ToolbarComponent } from '../../toolbar/toolbar.component';
 
 interface BuyerCategoryStats {
@@ -31,7 +33,6 @@ export class Visualization2PageComponent implements OnInit {
   private readonly ORDER_COLOR = '#1f77b4';
   private readonly SPENDING_COLOR = '#2ca02c';
   private readonly OTHER_COLOR = '#888';
-  private svg: any;
   private margin = { top: 80, right: 150, bottom: 80, left: 120 };
   private width = 0;
   private height = 0;
@@ -44,43 +45,33 @@ export class Visualization2PageComponent implements OnInit {
     private loadingService: LoadingService
   ) {}
 
-  async ngOnInit() {
-    try {
-      this.loadingService.start('Chargement des données...');
+  ngOnInit() {
+    const buyers = this.organizationsService.buyerOrganizations;
+    const orders = this.ordersService.orders.filter(
+      order =>
+        order.allStatuses.includes('confirmed') &&
+        order.buyerOrganizationId &&
+        order.totalAmountWithTaxes
+    );
 
-      await Promise.all([
-        this.organizationsService.isInitializedSignal(),
-        this.ordersService.isInitializedSignal(),
-      ]);
-
-      const buyers = this.organizationsService.buyerOrganizations;
-      const orders = this.ordersService.orders.filter(
-        order =>
-          order.allStatuses.includes('confirmed') &&
-          order.buyerOrganizationId &&
-          order.totalAmountWithTaxes
-      );
-
-      if (!orders?.length || !buyers?.length) {
-        throw new Error('No data loaded');
-      }
-
-      this.totalOrders = orders.length;
-      this.totalSpending = orders.reduce(
-        (sum, order) => sum + order.totalAmountWithTaxes,
-        0
-      );
-
-      const stats = this.processData(orders, buyers);
-      this.createVisualization(stats);
-    } catch (error: any) {
-      this.showError(error);
-    } finally {
-      this.loadingService.stop();
+    if (!orders?.length || !buyers?.length) {
+      throw new Error('No data loaded');
     }
+
+    this.totalOrders = orders.length;
+    this.totalSpending = orders.reduce(
+      (sum, order) => sum + order.totalAmountWithTaxes,
+      0
+    );
+
+    const stats = this.processData(orders, buyers);
+    this.createVisualization(stats);
   }
 
-  private processData(orders: any[], buyers: any[]): BuyerCategoryStats[] {
+  private processData(
+    orders: Order[],
+    buyers: BuyerOrganization[]
+  ): BuyerCategoryStats[] {
     const statsMap = new Map<
       BuyerOrganizationCategory,
       { orderCount: number; totalSpending: number }
@@ -156,7 +147,7 @@ export class Visualization2PageComponent implements OnInit {
 
     d3.select('svg#chart').remove();
 
-    this.svg = d3
+    const svg = d3
       .select('.chart-container')
       .append('svg')
       .attr('id', 'chart')
@@ -168,7 +159,7 @@ export class Visualization2PageComponent implements OnInit {
         `translate(${this.margin.left + centerX},${this.margin.top})`
       );
 
-    this.svg
+    svg
       .append('text')
       .attr('x', this.width / 2)
       .attr('y', this.height + this.margin.bottom - 20)
@@ -176,7 +167,7 @@ export class Visualization2PageComponent implements OnInit {
       .style('font-weight', 'bold')
       .text('Catégorie');
 
-    this.svg
+    svg
       .append('text')
       .attr('transform', 'rotate(-90)')
       .attr('y', -60)
@@ -185,7 +176,7 @@ export class Visualization2PageComponent implements OnInit {
       .style('font-weight', 'bold')
       .text('Pourcentage');
 
-    this.svg
+    svg
       .append('text')
       .attr('x', this.width / 2 + 10)
       .attr('y', -15)
@@ -208,18 +199,18 @@ export class Visualization2PageComponent implements OnInit {
 
     const y = d3.scaleLinear().domain([0, 100]).nice().range([this.height, 0]);
 
-    this.svg
+    svg
       .append('g')
       .attr('class', 'x-axis')
       .attr('transform', `translate(0,${this.height})`)
       .call(d3.axisBottom(x0));
 
-    this.svg
+    svg
       .append('g')
       .attr('class', 'y-axis')
-      .call(d3.axisLeft(y).tickFormat(d => `${d}%`));
+      .call(d3.axisLeft<number>(y).tickFormat(d => `${d}%`));
 
-    const categoryGroups = this.svg
+    const categoryGroups = svg
       .selectAll('.category-group')
       .data(stats)
       .enter()
@@ -237,7 +228,7 @@ export class Visualization2PageComponent implements OnInit {
       .enter()
       .append('rect')
       .attr('class', 'order-bar')
-      .attr('x', x1('commandes'))
+      .attr('x', x1('commandes')!.toString())
       .attr('y', (d: BuyerCategoryStats) => y(d.orderPercentage))
       .attr('width', x1.bandwidth())
       .attr(
@@ -259,7 +250,7 @@ export class Visualization2PageComponent implements OnInit {
       .enter()
       .append('rect')
       .attr('class', 'spending-bar')
-      .attr('x', x1('dépenses'))
+      .attr('x', x1('dépenses')!.toString())
       .attr('y', (d: BuyerCategoryStats) => y(d.spendingPercentage))
       .attr('width', x1.bandwidth())
       .attr(
@@ -274,7 +265,7 @@ export class Visualization2PageComponent implements OnInit {
       )
       .on('mouseout', () => this.hideTooltip());
 
-    const legend = this.svg
+    const legend = svg
       .append('g')
       .attr('class', 'legend')
       .attr('transform', `translate(${this.width - 100}, -20)`);
@@ -340,7 +331,7 @@ export class Visualization2PageComponent implements OnInit {
 
     if (type === 'dépenses') {
       tooltipContent += `
-        Dépenses: ${data.totalSpending.toLocaleString('fr-CA', { style: 'currency', currency: 'CAD' })} / 
+        Dépenses: ${data.totalSpending.toLocaleString('fr-CA', { style: 'currency', currency: 'CAD' })} /
         ${this.totalSpending.toLocaleString('fr-CA', { style: 'currency', currency: 'CAD' })}<br>
         (${data.spendingPercentage.toFixed(1)}%)
       `;
@@ -356,7 +347,7 @@ export class Visualization2PageComponent implements OnInit {
       .style('top', `${event.pageY - 40}px`)
       .html(tooltipContent);
 
-    d3.select(event.target as any).attr('opacity', 0.7);
+    d3.select(event.target as HTMLElement).attr('opacity', 0.7);
   }
 
   private hideTooltip() {

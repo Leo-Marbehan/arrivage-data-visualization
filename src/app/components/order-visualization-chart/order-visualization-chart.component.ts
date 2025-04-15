@@ -1,34 +1,25 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
-  ElementRef,
   OnInit,
-  ViewChild,
-  signal,
   WritableSignal,
   computed,
   effect,
   inject,
+  signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import * as d3 from 'd3';
 import { OrdersService } from '../../services/orders.service';
 import { OrganizationsService } from '../../services/organizations.service';
-import { Order } from '../../models/orders.model';
-import { Organization } from '../../models/organizations.model';
 
 interface ChartData {
   id: string;
   displayName: string;
   value: number;
-}
-
-interface EntityOption {
-  id: string;
-  displayName: string;
 }
 
 @Component({
@@ -46,8 +37,6 @@ interface EntityOption {
   styleUrl: './order-visualization-chart.component.scss',
 })
 export class OrderVisualizationChartComponent implements OnInit {
-  @ViewChild('chart', { static: true }) private chartContainer!: ElementRef;
-
   private ordersService = inject(OrdersService);
   private organizationsService = inject(OrganizationsService);
 
@@ -269,8 +258,7 @@ export class OrderVisualizationChartComponent implements OnInit {
       const data = this.chartData();
 
       // Effacer toujours le graphique précédent
-      const element = this.chartContainer.nativeElement;
-      d3.select(element).selectAll('*').remove();
+      d3.select('#chart').selectAll('*').remove();
 
       if (data.length > 0) {
         this.renderChart(data);
@@ -330,8 +318,6 @@ export class OrderVisualizationChartComponent implements OnInit {
   }
 
   private renderChart(data: ChartData[]): void {
-    const element = this.chartContainer.nativeElement;
-
     // Déterminer la couleur en fonction du mode de visualisation
     const barColor =
       this.viewMode() === 'buyersByVendor'
@@ -349,7 +335,7 @@ export class OrderVisualizationChartComponent implements OnInit {
 
     // Créer le SVG
     const svg = d3
-      .select(element)
+      .select('#chart')
       .append('svg')
       .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom)
@@ -401,7 +387,7 @@ export class OrderVisualizationChartComponent implements OnInit {
       .attr('x', 0)
       .attr('width', d => x(d.value))
       .attr('fill', barColor)
-      .on('mouseover', function (event, d) {
+      .on('mouseenter', function (event: MouseEvent, d) {
         d3.select(this).attr('fill', barHoverColor);
 
         // Tooltip
@@ -415,7 +401,8 @@ export class OrderVisualizationChartComponent implements OnInit {
           .style('border-radius', '4px')
           .style('padding', '10px')
           .style('box-shadow', '0 2px 5px rgba(0,0,0,0.1)')
-          .style('opacity', 0);
+          .style('opacity', 0)
+          .style('pointer-events', 'none');
 
         tooltip.transition().duration(200).style('opacity', 0.9);
 
@@ -423,6 +410,11 @@ export class OrderVisualizationChartComponent implements OnInit {
           .html(
             `<strong>${d.displayName}</strong>: ${d.value} commande(s)<br><small>ID complet: ${d.id}</small>`
           )
+          .style('left', event.pageX + 10 + 'px')
+          .style('top', event.pageY - 28 + 'px');
+      })
+      .on('mousemove', function (event: MouseEvent) {
+        d3.select('.tooltip')
           .style('left', event.pageX + 10 + 'px')
           .style('top', event.pageY - 28 + 'px');
       })

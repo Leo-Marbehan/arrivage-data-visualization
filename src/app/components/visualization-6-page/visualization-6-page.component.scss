@@ -1,0 +1,47 @@
+@use '../../styles/flex.styles.scss';
+
+main {
+  padding: 2rem;
+
+  max-width: 1440px;
+
+  // Center the main content
+  margin: 0 auto;
+}
+
+.legend {
+  width: 300px;
+
+  cursor: pointer;
+
+  & > div {
+    & > span {
+      border: 1px solid transparent;
+
+      &.mode-column {
+        flex: 2;
+        text-align: end;
+        padding-inline-end: 1rem;
+      }
+
+      &.year-column {
+        flex: 1;
+        text-align: center;
+      }
+
+      &.color-box:hover {
+        border: 1px solid yellow;
+      }
+    }
+  }
+}
+
+.header-content > article {
+  &:first-child {
+    flex: 1;
+  }
+
+  &:not(:first-child) {
+    flex: 1;
+  }
+}

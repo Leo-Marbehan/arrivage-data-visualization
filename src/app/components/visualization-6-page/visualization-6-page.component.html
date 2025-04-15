@@ -1,0 +1,129 @@
+<app-toolbar />
+<main>
+  <header>
+    <h1>Visualisation 6: Évolution des utilisateurs</h1>
+
+    <section class="flex-row header-content gap-1-rem">
+      <article>
+        <p>
+          Ce graphique a pour but de visualiser l'évolution des utilisateurs au
+          fil du temps.
+        </p>
+
+        <p>
+          Trois courbes différentes permettent de montrer l'évolution du nombre
+          d'acheteurs, de vendeurs et de l'ensemble des utilisateurs.
+        </p>
+
+        <p>
+          Deux modes d'affichage sont disponibles: empilé et continu. Le mode
+          continu permet de visualiser l'évolution depuis le lancement de
+          l'application jusqu'à aujourd'hui. Le mode empilé permet de comparer
+          l'évolution de chaque année.
+        </p>
+
+        <p>
+          Enfin, deux modes de calcul sont disponibles: cumulatif et absolu. Le
+          mode absolu se concentre sur le nombre de nouveaux utilisateurs chaque
+          mois, tandis que le mode cumulatif montre l'évolution totale des
+          utilisateurs au fil du temps.
+        </p>
+      </article>
+
+      <article class="flex-column align-main-end align-cross-start gap-1-rem">
+        @let dataModes = dataModesSignal();
+        <mat-button-toggle-group multiple (change)="onDataModesChange($event)">
+          <mat-button-toggle value="all" [checked]="dataModes.includes('all')">
+            Tous
+          </mat-button-toggle>
+          <mat-button-toggle
+            value="vendors"
+            [checked]="dataModes.includes('vendors')">
+            Vendeurs
+          </mat-button-toggle>
+          <mat-button-toggle
+            value="buyers"
+            [checked]="dataModes.includes('buyers')">
+            Acheteurs
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+
+        @let viewMode = viewModeSignal();
+        <mat-button-toggle-group (change)="onViewModeChange($event)">
+          <mat-button-toggle value="stacked" [checked]="viewMode === 'stacked'">
+            Empilé
+          </mat-button-toggle>
+          <mat-button-toggle
+            value="continuous"
+            [checked]="viewMode === 'continuous'">
+            Continu
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+
+        @let countMode = countModeSignal();
+        <mat-button-toggle-group (change)="onCountModeChange($event)">
+          <mat-button-toggle
+            value="cumulative"
+            [checked]="countMode === 'cumulative'">
+            Cumulatif
+          </mat-button-toggle>
+          <mat-button-toggle
+            value="absolute"
+            [checked]="countMode === 'absolute'">
+            Absolu
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+        @let legend = legendSignal();
+        @if (legend !== null) {
+          <section class="legend flex-column">
+            <p>Légende interactive</p>
+            <div class="flex-row">
+              <!-- Empty container for alignment -->
+              <span class="mode-column"></span>
+              @for (year of legend.years; track year) {
+                <span
+                  class="year-column"
+                  (mouseenter)="onHighlightedYearChange(year)"
+                  (mouseleave)="onHighlightedYearChange(null)"
+                  >{{ year }}</span
+                >
+              }
+            </div>
+
+            @for (mode of legend.modes; track mode.dataMode) {
+              <div class="flex-row">
+                <span
+                  class="mode-column"
+                  (mouseenter)="onHighlightedModeChange(mode.dataMode)"
+                  (mouseleave)="onHighlightedModeChange(null)"
+                  >{{ translateDataModeToString(mode.dataMode) }}</span
+                >
+
+                @for (color of mode.colors; track color; let index = $index) {
+                  <span
+                    class="year-column color-box"
+                    [style.backgroundColor]="color"
+                    [style.display]="'inline-block'"
+                    (mouseenter)="
+                      onHighlightedColorChange({
+                        dataMode: mode.dataMode,
+                        year: legend.years[index],
+                      })
+                    "
+                    (mouseleave)="onHighlightedColorChange(null)"></span>
+                }
+              </div>
+            }
+          </section>
+        }
+      </article>
+    </section>
+  </header>
+
+  <svg
+    id="chart"
+    [style.width]="CHART_WIDTH"
+    [style.height]="CHART_HEIGHT"></svg>
+
+  <div id="tooltip"></div>
+</main>

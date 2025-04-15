@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
+import { Navigation } from '../../classes/navigation.class';
 
 @Component({
   selector: 'app-home-page',
@@ -8,30 +9,8 @@ import { Router } from '@angular/router';
   templateUrl: './home-page.component.html',
   styleUrl: './home-page.component.scss',
 })
-export class HomePageComponent {
-  constructor(private readonly router: Router) {}
-
-  async navigateToRawData() {
-    await this.router.navigate(['raw-data']);
-  }
-
-  async navigateToViz1() {
-    await this.router.navigate(['viz1']);
-  }
-  
-  async navigateToVisualization3() {
-    await this.router.navigate(['visualization-3']);
-  }
-  
-  async navigateToVisualization4() {
-    await this.router.navigate(['visualization-4']);
-  }
-
-  async navigateToVisualization5() {
-    await this.router.navigate(['visualization-5']);
-  }
-
-  async navigateToVisualization2() {
-    await this.router.navigate(['visualization-2']);
+export class HomePageComponent extends Navigation {
+  constructor(router: Router) {
+    super(router);
   }
 }

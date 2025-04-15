@@ -25,6 +25,9 @@ export class OrdersService {
   private readonly SUBMITTED_ORDERS_FILE_PATH =
     'data/dataset-arrivage-orders - Submitted.csv';
 
+  private readonly ORDERS_LOCAL_STORAGE_KEY =
+    'arrivage-data-visualization/orders';
+
   private readonly _isInitializedSignal: WritableSignal<boolean> =
     signal(false);
 
@@ -42,39 +45,87 @@ export class OrdersService {
     return this._orders;
   }
 
-  private async loadOrders() {
-    const cancelledOrders = await this.loadOrdersFromFile(
-      this.CANCELLED_ORDERS_FILE_PATH,
-      'cancelled'
-    );
-    const completedOrders = await this.loadOrdersFromFile(
-      this.COMPLETED_ORDERS_FILE_PATH,
-      'completed'
-    );
-    const confirmedOrders = await this.loadOrdersFromFile(
-      this.CONFIRMED_ORDERS_FILE_PATH,
-      'confirmed'
-    );
-    const deliveredOrders = await this.loadOrdersFromFile(
-      this.DELIVERED_ORDERS_FILE_PATH,
-      'delivered'
-    );
-    const paidOrders = await this.loadOrdersFromFile(
-      this.PAID_ORDERS_FILE_PATH,
-      'paid'
-    );
-    const submittedOrders = await this.loadOrdersFromFile(
-      this.SUBMITTED_ORDERS_FILE_PATH,
-      'submitted'
-    );
+  async resetOrders(): Promise<void> {
+    localStorage.removeItem(this.ORDERS_LOCAL_STORAGE_KEY);
 
-    this._orders = this.mergeOrders(cancelledOrders, completedOrders);
-    this._orders = this.mergeOrders(this._orders, confirmedOrders);
-    this._orders = this.mergeOrders(this._orders, deliveredOrders);
-    this._orders = this.mergeOrders(this._orders, paidOrders);
-    this._orders = this.mergeOrders(this._orders, submittedOrders);
+    this._orders = [];
+
+    await this.loadOrders();
+  }
+
+  private async loadOrders() {
+    this.isInitializedSignal.set(false);
+
+    if (!this.getFromLocalStorage()) {
+      const cancelledOrders = await this.loadOrdersFromFile(
+        this.CANCELLED_ORDERS_FILE_PATH,
+        'cancelled'
+      );
+      const completedOrders = await this.loadOrdersFromFile(
+        this.COMPLETED_ORDERS_FILE_PATH,
+        'completed'
+      );
+      const confirmedOrders = await this.loadOrdersFromFile(
+        this.CONFIRMED_ORDERS_FILE_PATH,
+        'confirmed'
+      );
+      const deliveredOrders = await this.loadOrdersFromFile(
+        this.DELIVERED_ORDERS_FILE_PATH,
+        'delivered'
+      );
+      const paidOrders = await this.loadOrdersFromFile(
+        this.PAID_ORDERS_FILE_PATH,
+        'paid'
+      );
+      const submittedOrders = await this.loadOrdersFromFile(
+        this.SUBMITTED_ORDERS_FILE_PATH,
+        'submitted'
+      );
+
+      this._orders = this.mergeOrders(cancelledOrders, completedOrders);
+      this._orders = this.mergeOrders(this._orders, confirmedOrders);
+      this._orders = this.mergeOrders(this._orders, deliveredOrders);
+      this._orders = this.mergeOrders(this._orders, paidOrders);
+      this._orders = this.mergeOrders(this._orders, submittedOrders);
+
+      this.setToLocalStorage();
+    }
 
     this._isInitializedSignal.set(true);
+  }
+
+  private getFromLocalStorage(): boolean {
+    const orders = localStorage.getItem(this.ORDERS_LOCAL_STORAGE_KEY);
+
+    if (orders === null || orders === '') {
+      return false;
+    }
+
+    const parsedOrders = JSON.parse(orders) as Order[];
+
+    const mappedOrders = parsedOrders.map((order: Order) => {
+      const dateAddedToSpreadsheet = new Date(order.dateAddedToSpreadsheet);
+      const dueDate = new Date(order.dueDate);
+      const distributionDate = new Date(order.distributionDate);
+
+      return {
+        ...order,
+        dateAddedToSpreadsheet,
+        dueDate,
+        distributionDate,
+      };
+    });
+
+    this._orders = mappedOrders;
+
+    return true;
+  }
+
+  private setToLocalStorage(): void {
+    localStorage.setItem(
+      this.ORDERS_LOCAL_STORAGE_KEY,
+      JSON.stringify(this._orders)
+    );
   }
 
   private mergeOrders(first: Order[], second: Order[]): Order[] {
@@ -351,29 +402,3 @@ export class OrdersService {
     }
   }
 }
-
-/**
- * new Set([
-    "Id",
-    "Number",
-    "Timestamp",
-    "Due date",
-    "",
-    "_1",
-    "Uniq items ordered",
-    "Amount excluding taxes (CAD)",
-    "Amount including taxes (CAD)",
-    "Status",
-    "Distribution mode",
-    "Delivery date",
-    "Delivery fees (CAD)",
-    "Distance to pickup (km)",
-    "Vendor organization id",
-    "_2",
-    "Buyer organization id",
-    "_3",
-    "Creator organization id",
-    "_4",
-    "Creator logged in"
-])
- */
