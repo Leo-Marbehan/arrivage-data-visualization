@@ -32,7 +32,21 @@ type CountMode = 'absolute' | 'cumulative';
 export class Visualization6PageComponent implements AfterViewInit {
   // MARK: Properties
   readonly CHART_WIDTH = 1280;
-  readonly CHART_HEIGHT = 500;
+  readonly CHART_HEIGHT = 600;
+
+  private readonly MARGIN = {
+    top: 40,
+    right: 40,
+    bottom: 40,
+    left: 40,
+  };
+
+  private readonly ALL_FIRST_COLOR = '#ffaaaa';
+  private readonly ALL_LAST_COLOR = '#880000';
+  private readonly VENDORS_FIRST_COLOR = '#aaaaff';
+  private readonly VENDORS_LAST_COLOR = '#000088';
+  private readonly BUYERS_FIRST_COLOR = '#aaffaa';
+  private readonly BUYERS_LAST_COLOR = '#008800';
 
   // MARK: Filters
   readonly dataModesSignal: WritableSignal<DataMode[]> = signal([
@@ -153,7 +167,7 @@ export class Visualization6PageComponent implements AfterViewInit {
     const width = this.CHART_WIDTH;
     const height = this.CHART_HEIGHT;
 
-    const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+    const margin = this.MARGIN;
 
     // Get all years
     const years = Array.from(
@@ -165,12 +179,12 @@ export class Visualization6PageComponent implements AfterViewInit {
     ).sort((a, b) => parseInt(a) - parseInt(b));
 
     // Create a color scale for the years
-    const allFirstColor = '#ffaaaa';
-    const allLastColor = '#880000';
-    const vendorsFirstColor = '#aaaaff';
-    const vendorsLastColor = '#000088';
-    const buyersFirstColor = '#aaffaa';
-    const buyersLastColor = '#008800';
+    const allFirstColor = this.ALL_FIRST_COLOR;
+    const allLastColor = this.ALL_LAST_COLOR;
+    const vendorsFirstColor = this.VENDORS_FIRST_COLOR;
+    const vendorsLastColor = this.VENDORS_LAST_COLOR;
+    const buyersFirstColor = this.BUYERS_FIRST_COLOR;
+    const buyersLastColor = this.BUYERS_LAST_COLOR;
 
     const [allColorScale, vendorsColorScale, buyersColorScale] = [
       [allFirstColor, allLastColor],
@@ -203,6 +217,25 @@ export class Visualization6PageComponent implements AfterViewInit {
       countMode
     );
 
+    // Get the displayed counts to adapt the scales
+    const displayedCounts: {
+      year: number;
+      month: number;
+      count: number;
+    }[] = [];
+
+    if (dataModes.includes('all')) {
+      displayedCounts.push(...allOrganizationsCountByMonth.values());
+    }
+    if (dataModes.includes('vendors')) {
+      displayedCounts.push(...vendorOrganizationsCountByMonth.values());
+    }
+    if (dataModes.includes('buyers')) {
+      displayedCounts.push(...buyerOrganizationsCountByMonth.values());
+    }
+
+    console.log('displayedCounts', displayedCounts);
+
     // Create the axes scales
     const x = d3
       .scaleBand()
@@ -218,13 +251,7 @@ export class Visualization6PageComponent implements AfterViewInit {
 
     const y = d3
       .scaleLinear()
-      .domain([
-        0,
-        d3.max(
-          Array.from(allOrganizationsCountByMonth.values()),
-          d => d.count
-        ) || 0,
-      ])
+      .domain([0, d3.max(displayedCounts, d => d.count) || 0])
       .nice()
       .range([height - margin.bottom, margin.top]);
 
@@ -279,14 +306,71 @@ export class Visualization6PageComponent implements AfterViewInit {
       dataModes.includes('buyers')
     );
 
-    // TODO Draw seasons
+    // Display a dotted line for each year if continuous mode
+    if (viewMode === 'continuous') {
+      const elementsOfEachYear = years.map(year =>
+        Array.from(allOrganizationsCountByMonth.entries()).find(
+          d => d[1].year === parseInt(year)
+        )
+      );
+
+      // Add the lines
+      svg
+        .selectAll('line.dotted-line')
+        .data(elementsOfEachYear)
+        .enter()
+        .append('line')
+        .attr('class', 'dotted-line')
+        .attr('x1', 0)
+        .attr('x2', 0)
+        .attr('y1', margin.top)
+        .attr('y2', height - margin.bottom)
+        .attr('stroke', '#ccc')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '5,5')
+        .attr(
+          'transform',
+          (d, i) => `translate(${x(d![0])! + x.bandwidth() / 2},0)`
+        );
+
+      // Add the years
+      svg
+        .selectAll('text.year')
+        .data(elementsOfEachYear)
+        .enter()
+        .append('text')
+        .attr('class', 'year')
+        .attr('x', (d, i) => x(d![0])! + x.bandwidth() / 2)
+        .attr('y', margin.top - 10)
+        .attr('text-anchor', 'middle')
+        .text((d, i) => d![1].year);
+
+      // Fade in the lines
+      svg
+        .selectAll('line.dotted-line')
+        .transition()
+        .duration(1000)
+        .attr('opacity', 1);
+
+      // Fade in the years
+      svg.selectAll('text.year').transition().duration(1000).attr('opacity', 1);
+    } else {
+      // Fade out the lines
+      svg
+        .selectAll('line.dotted-line')
+        .transition()
+        .duration(1000)
+        .attr('opacity', 0);
+
+      // Fade out the years
+      svg.selectAll('text.year').transition().duration(1000).attr('opacity', 0);
+    }
+
     // TODO Hover on line make it highlighted and other lines dimmed
     // TODO Hover on point make it highlighted and info tooltip
     // TODO Add a legend for years and types
     // TODO Hover on legend cell make line highlighted and other lines dimmed
     // TODO Hover on legend line or column make lines highlighted and other lines dimmed
-    // TODO Adapt scale to filters
-    // TODO Display the years
   }
 
   private renderData(
