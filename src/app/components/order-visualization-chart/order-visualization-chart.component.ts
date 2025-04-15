@@ -399,7 +399,7 @@ export class OrderVisualizationChartComponent implements OnInit {
       .attr('x', 0)
       .attr('width', d => x(d.value))
       .attr('fill', barColor)
-      .on('mouseover', function (event, d) {
+      .on('mouseenter', function (event, d) {
         d3.select(this).attr('fill', barHoverColor);
 
         // Tooltip
@@ -413,7 +413,8 @@ export class OrderVisualizationChartComponent implements OnInit {
           .style('border-radius', '4px')
           .style('padding', '10px')
           .style('box-shadow', '0 2px 5px rgba(0,0,0,0.1)')
-          .style('opacity', 0);
+          .style('opacity', 0)
+          .style('pointer-events', 'none');
 
         tooltip.transition().duration(200).style('opacity', 0.9);
 
@@ -421,6 +422,11 @@ export class OrderVisualizationChartComponent implements OnInit {
           .html(
             `<strong>${d.displayName}</strong>: ${d.value} commande(s)<br><small>ID complet: ${d.id}</small>`
           )
+          .style('left', event.pageX + 10 + 'px')
+          .style('top', event.pageY - 28 + 'px');
+      })
+      .on('mousemove', function (event) {
+        d3.select('.tooltip')
           .style('left', event.pageX + 10 + 'px')
           .style('top', event.pageY - 28 + 'px');
       })
