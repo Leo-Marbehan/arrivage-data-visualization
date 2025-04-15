@@ -34,13 +34,6 @@ interface DataPoint {
 // TODO: Appliquer d'avantage le code
 // TODO: Mettre un option de valeur minimale pour les échanges
 
-// POUR LA BÊTA (8h)
-// DONE: 1. Aller chercher les vraies données (40 min)
-// DONE: 2. Mettre des boutons pour alterner entre ces données (1h20m in)
-// DONE: 3. Quand on clique sur un arc, on l'explose en sous-régions (4h)
-// DONE: 4. Quand on hover par dessus un arc, changer la couleure à rouge (40 min)
-// TODO: 5. Mettre une échelle (1h20 min)
-// DONE: 6. Régler le bug quand ça load
 @Component({
   selector: 'app-visualization-3-page',
   standalone: true,
