@@ -26,12 +26,20 @@ export class ToolbarComponent {
     console.log('Navigating to viz1...');
     await this.router.navigate(['viz1']);
   }
-  
+
   async navigateToVisualization3() {
     await this.router.navigate(['visualization-3']);
   }
-  
+
   async navigateToVisualization4() {
     await this.router.navigate(['visualization-4']);
+  }
+
+  async navigateToVisualization5() {
+    await this.router.navigate(['visualization-5']);
+  }
+
+  async navigateToVisualization2() {
+    await this.router.navigate(['visualization-2']);
   }
 }

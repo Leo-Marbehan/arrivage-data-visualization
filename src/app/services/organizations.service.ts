@@ -2,6 +2,7 @@ import { Injectable, signal, WritableSignal } from '@angular/core';
 import { environment } from '../environment';
 import {
   BuyerOrganization,
+  EXCLUDED_CATEGORIES,
   Language,
   mapBuyerOrganizationCategory,
   mapVendorProductCategory,
@@ -165,7 +166,8 @@ export class OrganizationsService {
     for (const rawCategory of RAW_VENDOR_PRODUCT_CATEGORIES) {
       if (
         rawVendorOrganization[rawCategory] !== undefined &&
-        rawVendorOrganization[rawCategory] !== ''
+        rawVendorOrganization[rawCategory] !== '' &&
+        !EXCLUDED_CATEGORIES.includes(rawCategory)
       ) {
         try {
           productCategories.push(mapVendorProductCategory(rawCategory));
@@ -181,7 +183,9 @@ export class OrganizationsService {
 
     const vendorOrganization: VendorOrganization = {
       ...organization,
-      productCategories,
+      productCategories: productCategories.filter(
+        (value, index, array) => array.indexOf(value) === index
+      ),
     };
 
     return vendorOrganization;

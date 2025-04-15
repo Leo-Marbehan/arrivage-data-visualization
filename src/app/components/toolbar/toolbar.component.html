@@ -9,7 +9,7 @@
     <span>Visualisation 1</span>
   </button>
 
-  <button mat-button disabled>
+  <button mat-button (click)="navigateToVisualization2()">
     <mat-icon>bar_chart</mat-icon>
     <span>Visualisation 2</span>
   </button>
@@ -22,6 +22,11 @@
   <button mat-button (click)="navigateToVisualization4()">
     <mat-icon>bar_chart</mat-icon>
     <span>Visualisation 4</span>
+  </button>
+
+  <button mat-button (click)="navigateToVisualization5()">
+    <mat-icon>bar_chart</mat-icon>
+    <span>Visualisation 5</span>
   </button>
 
   <button mat-button (click)="navigateToRawData()">

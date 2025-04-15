@@ -83,8 +83,6 @@ export class Visualization3PageComponent implements OnInit {
   colors: string[] | null = null;
 
   ngOnInit() {
-    this.loadingService.start('Chargement des données...');
-
     this.initialize()
       .then(() => {
         this.initialize_data();
