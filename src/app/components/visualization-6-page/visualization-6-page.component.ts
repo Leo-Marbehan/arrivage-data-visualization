@@ -61,6 +61,15 @@ export class Visualization6PageComponent implements AfterViewInit {
 
   private readonly isInitializedSignal: WritableSignal<boolean> = signal(false);
 
+  // Legend
+  readonly legendSignal: WritableSignal<{
+    years: string[];
+    modes: {
+      dataMode: DataMode;
+      colors: string[];
+    }[];
+  } | null> = signal(null);
+
   // MARK: Constructor
   constructor(
     private readonly organizationsService: OrganizationsService,
@@ -155,6 +164,19 @@ export class Visualization6PageComponent implements AfterViewInit {
     return organizationsCountByMonth;
   }
 
+  translateDataModeToString(dataMode: DataMode): string {
+    switch (dataMode) {
+      case 'all':
+        return 'Tous';
+      case 'vendors':
+        return 'Vendeurs';
+      case 'buyers':
+        return 'Acheteurs';
+      default:
+        return '';
+    }
+  }
+
   // MARK: Rendering
   private renderChart(
     organizations: Organization[],
@@ -233,8 +255,6 @@ export class Visualization6PageComponent implements AfterViewInit {
     if (dataModes.includes('buyers')) {
       displayedCounts.push(...buyerOrganizationsCountByMonth.values());
     }
-
-    console.log('displayedCounts', displayedCounts);
 
     // Create the axes scales
     const x = d3
@@ -366,9 +386,41 @@ export class Visualization6PageComponent implements AfterViewInit {
       svg.selectAll('text.year').transition().duration(1000).attr('opacity', 0);
     }
 
+    this.legendSignal.set({
+      years: years,
+      modes: [
+        {
+          dataMode: 'all',
+          colors: Array.from(years).map((_, i) =>
+            d3.interpolateRgb(
+              allFirstColor,
+              allLastColor
+            )(i / (years.length - 1))
+          ),
+        },
+        {
+          dataMode: 'vendors',
+          colors: Array.from(years).map((_, i) =>
+            d3.interpolateRgb(
+              vendorsFirstColor,
+              vendorsLastColor
+            )(i / (years.length - 1))
+          ),
+        },
+        {
+          dataMode: 'buyers',
+          colors: Array.from(years).map((_, i) =>
+            d3.interpolateRgb(
+              buyersFirstColor,
+              buyersLastColor
+            )(i / (years.length - 1))
+          ),
+        },
+      ],
+    });
+
     // TODO Hover on line make it highlighted and other lines dimmed
     // TODO Hover on point make it highlighted and info tooltip
-    // TODO Add a legend for years and types
     // TODO Hover on legend cell make line highlighted and other lines dimmed
     // TODO Hover on legend line or column make lines highlighted and other lines dimmed
   }

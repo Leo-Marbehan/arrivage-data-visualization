@@ -9,6 +9,38 @@ main {
   margin: 0 auto;
 }
 
-p {
-  max-width: 800px;
+.legend {
+  width: 300px;
+
+  & > div {
+    & > span {
+      border: 1px solid transparent;
+
+      &.mode-column {
+        flex: 2;
+        text-align: end;
+        padding-inline-end: 1rem;
+      }
+
+      &.year-column {
+        flex: 1;
+        text-align: center;
+      }
+
+      &.color-box:hover {
+        cursor: pointer;
+        border: 1px solid yellow;
+      }
+    }
+  }
+}
+
+.header-content > article {
+  &:first-child {
+    flex: 1;
+  }
+
+  &:not(:first-child) {
+    flex: 1;
+  }
 }
