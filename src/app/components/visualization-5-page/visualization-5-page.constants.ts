@@ -15,3 +15,5 @@ export const SEASONS = [
   { name: 'Été', start: '06-21', end: '09-20', color: '#FAEDCB' },
   { name: 'Automne', start: '09-21', end: '12-20', color: '#F7D9C4' },
 ];
+
+export const TRANSITION_DURATION = 800;
