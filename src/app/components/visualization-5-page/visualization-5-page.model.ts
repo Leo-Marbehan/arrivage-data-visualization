@@ -5,6 +5,13 @@ export interface Scales {
   y: d3.ScaleLinear<number, number, never>;
 }
 
+export interface Season {
+  start: Date;
+  end: Date;
+  color: string;
+  id: string;
+}
+
 export interface Dimensions {
   width: number;
   height: number;

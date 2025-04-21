@@ -12,8 +12,14 @@ import {
   CategoryData,
   MonthData,
   Filter,
+  Dimensions,
 } from './visualization-5-page.model';
-import { MAX_DATE, MIN_DATE } from './visualization-5-page.constants';
+import {
+  CONTAINER_HEIGHT,
+  MARGIN,
+  MAX_DATE,
+  MIN_DATE,
+} from './visualization-5-page.constants';
 
 export class VisualizationFiveUtils {
   // -----------------------------------------------------------
@@ -159,5 +165,12 @@ export class VisualizationFiveUtils {
         return monthData.nbOrders;
       })!;
     }
+  }
+
+  static computeDimensions(chart: HTMLDivElement): Dimensions {
+    return {
+      width: chart.getBoundingClientRect().width - MARGIN.left - MARGIN.right,
+      height: CONTAINER_HEIGHT - MARGIN.top - MARGIN.bottom,
+    };
   }
 }

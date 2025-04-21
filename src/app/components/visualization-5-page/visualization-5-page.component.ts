@@ -17,9 +17,9 @@ import {
   CATEGORY_COLOR,
   TOTAL_COLOR,
   MARGIN,
-  CONTAINER_HEIGHT,
   HIGHLIGHT_COLOR,
   LABEL_COLOR,
+  TRANSITION_DURATION,
 } from './visualization-5-page.constants';
 import {
   Filter,
@@ -30,6 +30,7 @@ import {
   Scales,
 } from './visualization-5-page.model';
 import { VisualizationFiveUtils as utils } from './visualization-5-page.utils';
+import { Season } from './visualization-5-page.model';
 
 @Component({
   selector: 'app-visualization-5-page',
@@ -56,6 +57,7 @@ export class VisualizationFivePageComponent implements OnInit {
   private filteredCategories: CategoryData[] = [];
   private filteredTotal: MonthData[] = [];
   private isCategoriesView = false;
+  private previousScales?: Scales;
 
   get displayedCategories(): VendorProductCategory[] {
     return this.categoryFilters.reduce((displayedCategories, filter) => {
@@ -93,8 +95,7 @@ export class VisualizationFivePageComponent implements OnInit {
     }
     filter.displayed = displayed;
     this.filterData();
-    this.createChart();
-    // TODO: updateChart
+    this.updateChart();
     if (displayed) {
       this.onCheckboxMouseEnter(filter.categoryId);
     }
@@ -102,8 +103,7 @@ export class VisualizationFivePageComponent implements OnInit {
 
   changeView(isCategoriesView: boolean): void {
     this.isCategoriesView = isCategoriesView;
-    this.createChart();
-    // TODO: updateChart
+    this.updateChart();
   }
 
   onCheckboxMouseEnter(categoryId: VendorProductCategory): void {
@@ -139,11 +139,45 @@ export class VisualizationFivePageComponent implements OnInit {
   // MARK: Creating the chart
 
   private createChart(): void {
-    const dimensions = this.drawContainer();
-    const scales = this.drawAxies(dimensions);
+    const dimensions = utils.computeDimensions(
+      this.chartContainer.nativeElement
+    );
+    const scales = this.createScales(dimensions);
+    this.previousScales = scales;
+
+    this.drawContainer(dimensions);
+    this.drawAxes(scales, dimensions);
     this.drawSeasons(scales, dimensions);
     this.drawAllLines(scales);
+    this.drawToolTip();
+  }
 
+  private createScales(dimensions: Dimensions): Scales {
+    const xScale = d3
+      .scaleTime()
+      .domain(
+        d3.extent(this.filteredTotal, monthData => monthData.date) as [
+          Date,
+          Date,
+        ]
+      )
+      .range([0, dimensions.width]);
+    const yScale = d3
+      .scaleLinear()
+      .domain([
+        0,
+        utils.getMaxY(
+          this.isCategoriesView,
+          this.filteredCategories,
+          this.filteredTotal
+        ),
+      ])
+      .range([dimensions.height, 0]);
+
+    return { x: xScale, y: yScale };
+  }
+
+  private drawToolTip(): void {
     d3.select(this.chartContainer.nativeElement)
       .append('div')
       .attr('class', 'tooltip')
@@ -159,14 +193,7 @@ export class VisualizationFivePageComponent implements OnInit {
       .style('border-radius', '5px');
   }
 
-  private drawContainer(): Dimensions {
-    const containerWidth =
-      this.chartContainer.nativeElement.getBoundingClientRect().width;
-    const dimensions = {
-      width: containerWidth - MARGIN.left - MARGIN.right,
-      height: CONTAINER_HEIGHT - MARGIN.top - MARGIN.bottom,
-    };
-
+  private drawContainer(dimensions: Dimensions): void {
     const element = this.chartContainer.nativeElement;
     d3.select(element).selectAll('*').remove();
     d3.select(element)
@@ -176,26 +203,26 @@ export class VisualizationFivePageComponent implements OnInit {
       .append('g')
       .attr('id', 'graph-g')
       .attr('transform', `translate(${MARGIN.left},${MARGIN.top})`);
-
-    return dimensions;
   }
 
-  private drawAxies(dimensions: Dimensions): Scales {
+  private drawAxes(
+    scales: Scales,
+    dimensions: Dimensions,
+    transitionDuration = 0
+  ): void {
     const g = d3.select('#graph-g');
-    const xScale = d3
-      .scaleTime()
-      .domain(
-        d3.extent(this.filteredTotal, monthData => monthData.date) as [
-          Date,
-          Date,
-        ]
-      )
-      .range([0, dimensions.width]);
-    g.append('g')
+    const xAxis = g.selectAll<SVGGElement, unknown>('.x-axis').data([null]);
+    xAxis
+      .enter()
+      .append('g')
+      .attr('class', 'x-axis')
       .attr('transform', `translate(0, ${dimensions.height})`)
+      .merge(xAxis)
+      .transition()
+      .duration(transitionDuration)
       .call(
         d3
-          .axisBottom(xScale)
+          .axisBottom(scales.x)
           .ticks(d3.timeMonth.every(2))
           .tickFormat(domain => {
             if ((domain as Date).getMonth() === 0) {
@@ -208,35 +235,41 @@ export class VisualizationFivePageComponent implements OnInit {
           })
       );
 
-    const yScale = d3
-      .scaleLinear()
-      .domain([
-        0,
-        utils.getMaxY(
-          this.isCategoriesView,
-          this.filteredCategories,
-          this.filteredTotal
-        ),
-      ])
-      .range([dimensions.height, 0]);
-    g.append('g').call(d3.axisLeft(yScale));
+    const yAxis = g.selectAll<SVGGElement, unknown>('.y-axis').data([null]);
+    yAxis
+      .enter()
+      .append('g')
+      .attr('class', 'y-axis')
+      .merge(yAxis)
+      .transition()
+      .duration(transitionDuration)
+      .call(d3.axisLeft(scales.y));
 
-    g.append('text')
-      .text('Nombre de commandes')
+    const yLabel = g
+      .selectAll<SVGTextElement, unknown>('.axis-text')
+      .data([null]);
+    yLabel
+      .enter()
+      .append('text')
       .attr('class', 'axis-text')
       .attr('font-size', 12)
       .attr('y', -5)
-      .style('text-anchor', 'middle');
-
-    return { x: xScale, y: yScale };
+      .style('text-anchor', 'middle')
+      .merge(yLabel)
+      .text('Nombre de commandes');
   }
 
-  private drawSeasons(scales: Scales, dimensions: Dimensions): void {
+  private drawSeasons(
+    scales: Scales,
+    dimensions: Dimensions,
+    transitionDuration = 0
+  ): void {
     const g = d3.select('#graph-g');
 
     const startDate = scales.x.domain()[0];
     const endDate = scales.x.domain()[1];
     let currentYear = startDate.getFullYear();
+    const seasonData: Season[] = [];
     while (new Date(`${currentYear}-01-01`) < endDate) {
       this.seasons.forEach(season => {
         const startDateStr = season.start.startsWith('12')
@@ -250,36 +283,57 @@ export class VisualizationFivePageComponent implements OnInit {
         const seasonEnd = new Date(endDateStr);
 
         if (seasonEnd > startDate && seasonStart < endDate) {
-          g.append('rect')
-            .attr('x', scales.x(d3.max([seasonStart, startDate]) as Date))
-            .attr('y', 0)
-            .attr(
-              'width',
-              scales.x(d3.min([seasonEnd, endDate]) as Date) -
-                scales.x(d3.max([seasonStart, startDate]) as Date)
-            )
-            .attr('height', dimensions.height)
-            .attr('fill', season.color)
-            .attr('opacity', 0.5);
+          seasonData.push({
+            start: d3.max([seasonStart, startDate]) as Date,
+            end: d3.min([seasonEnd, endDate]) as Date,
+            color: season.color,
+            id: `${season.start}-${currentYear}`,
+          });
         }
       });
       currentYear++;
     }
+
+    const seasons = g
+      .selectAll<SVGRectElement, unknown>('.season')
+      .data(seasonData, d => (d as Season).id);
+    seasons
+      .enter()
+      .append('rect')
+      .attr('class', 'season')
+      .attr('y', 0)
+      .attr('height', dimensions.height)
+      .attr('fill', d => d.color)
+      .attr('opacity', 0.5)
+      .merge(seasons)
+      .transition()
+      .duration(transitionDuration)
+      .attr('x', d => scales.x(d.start))
+      .attr('width', d => scales.x(d.end) - scales.x(d.start));
+    seasons.exit().remove();
   }
 
-  private drawAllLines(scales: Scales): void {
+  private drawAllLines(scales: Scales, transitionDuration = 0): void {
     if (this.isCategoriesView) {
-      this.filteredCategories.forEach(category =>
+      this.filteredCategories.forEach(category => {
         this.drawLine(
           translateVendorProductCategory(category.categoryId),
           CATEGORY_COLOR,
           category.ordersPerMonth,
           scales,
-          category.categoryId
-        )
-      );
+          category.categoryId,
+          transitionDuration
+        );
+      });
     } else if (this.filteredTotal.length > 0) {
-      this.drawLine('Total', TOTAL_COLOR, this.filteredTotal, scales);
+      this.drawLine(
+        'Total',
+        TOTAL_COLOR,
+        this.filteredTotal,
+        scales,
+        undefined,
+        transitionDuration
+      );
     }
   }
 
@@ -288,75 +342,123 @@ export class VisualizationFivePageComponent implements OnInit {
     color: string,
     data: MonthData[],
     scales: Scales,
-    categoryId?: VendorProductCategory
+    categoryId?: VendorProductCategory,
+    transitionDuration = 0
   ): void {
-    const g = d3
-      .select('#graph-g')
-      .append('g')
-      .attr('id', categoryId ? categoryId : name)
-      .attr('stroke', color)
-      .attr('fill', color);
+    const lineId = categoryId ? categoryId : name;
+    const g = d3.select(`#graph-g`).select<SVGGElement>(`#${lineId}`);
 
-    if (categoryId) {
-      g.on('mouseenter', () => this.highlightCategory(categoryId)).on(
-        'mouseleave',
-        () => this.undoHighlightCategory(categoryId, color)
-      );
+    const group = g.empty()
+      ? d3
+          .select('#graph-g')
+          .append('g')
+          .attr('class', 'line-group')
+          .attr('id', lineId)
+          .attr('stroke', color)
+          .attr('fill', color)
+      : g;
+
+    if (categoryId && g.empty()) {
+      group
+        .on('mouseenter', () => this.highlightCategory(categoryId))
+        .on('mouseleave', () => this.undoHighlightCategory(categoryId, color));
     }
 
-    g.append('path')
-      .datum(data)
+    const lineGenerator = d3
+      .line<MonthData>()
+      .x(d => scales.x(d.date))
+      .y(d => scales.y(d.nbOrders));
+
+    const path = group.selectAll('path').data([data]);
+    path.transition().duration(transitionDuration).attr('d', lineGenerator);
+    path
+      .enter()
+      .append('path')
       .attr('fill', 'none')
       .attr('stroke-width', 2)
-      .attr(
-        'd',
-        d3
-          .line<MonthData>()
-          .x(d => scales.x(d.date))
-          .y(d => scales.y(d.nbOrders))
-      );
+      .attr('d', lineGenerator);
 
-    g.selectAll('dot')
-      .data(data)
+    const circles = group
+      .selectAll<SVGCircleElement, MonthData>('circle')
+      .data(data, d => d.date.toString());
+    circles
+      .on('mouseenter', (_, d) => this.showToolTip(d, scales))
+      .on('mouseleave', () => this.hideToolTip())
+      .transition()
+      .duration(transitionDuration)
+      .attr('cx', d => scales.x(d.date))
+      .attr('cy', d => scales.y(d.nbOrders));
+    circles
       .enter()
       .append('circle')
       .attr('stroke', 'none')
-      .attr('cx', d => {
-        return scales.x(d.date);
-      })
-      .attr('cy', d => {
-        return scales.y(d.nbOrders);
-      })
       .attr('r', 3)
+      .attr('cx', d => scales.x(d.date))
+      .attr('cy', d => scales.y(d.nbOrders))
       .on('mouseenter', (_, d) => this.showToolTip(d, scales))
       .on('mouseleave', () => this.hideToolTip());
+    circles.exit().remove();
 
     const lastMonth = data[data.length - 1];
-
-    const label = g.append('g').attr('class', 'label');
+    const label = group.selectAll('.label').data([lastMonth]);
     label
+      .transition()
+      .duration(transitionDuration)
+      .style(
+        'transform',
+        d =>
+          `translate(${scales.x(d.date) + 10}px, ${scales.y(d.nbOrders) + 4}px)`
+      );
+    const labelEnter = label.enter().append('g').attr('class', 'label');
+    labelEnter
+      .style(
+        'transform',
+        d =>
+          `translate(${scales.x(d.date) + 10}px, ${scales.y(d.nbOrders) + 4}px)`
+      )
       .append('text')
-      .attr('x', scales.x(lastMonth.date) + 10)
-      .attr('y', scales.y(lastMonth.nbOrders) + 4)
       .attr('stroke', 'none')
       .style('font-size', 12)
       .text(name);
-    const textDims = label.select<SVGTextElement>('text').node()!.getBBox();
-    label
-      .insert('rect', ':first-child')
-      .attr('x', textDims.x)
-      .attr('y', textDims.y)
-      .attr('fill', LABEL_COLOR)
-      .attr('width', textDims.width)
-      .attr('height', textDims.height)
-      .attr('stroke', 'none');
+    labelEnter.each(function () {
+      const textDims = d3
+        .select(this)
+        .select<SVGTextElement>('text')
+        .node()!
+        .getBBox();
+      d3.select(this)
+        .insert('rect', ':first-child')
+        .attr('x', textDims.x)
+        .attr('y', textDims.y)
+        .attr('fill', LABEL_COLOR)
+        .attr('width', textDims.width)
+        .attr('height', textDims.height)
+        .attr('stroke', 'none');
+    });
+    label.exit().remove();
   }
 
   // -----------------------------------------------------------
   // MARK: Updating the chart
 
   private updateChart(): void {
-    // TODO
+    const dimensions = utils.computeDimensions(
+      this.chartContainer.nativeElement
+    );
+
+    this.removeAllLines();
+    this.drawAllLines(this.previousScales!, 0);
+
+    const newScales = this.createScales(dimensions);
+    this.drawAxes(newScales, dimensions, TRANSITION_DURATION);
+    this.drawSeasons(newScales, dimensions, TRANSITION_DURATION);
+    this.drawAllLines(newScales, TRANSITION_DURATION);
+    this.previousScales = newScales;
+  }
+
+  private removeAllLines(): void {
+    const g = d3.select('#graph-g');
+    g.selectAll('g.line-group').remove();
   }
 
   // -----------------------------------------------------------
@@ -378,7 +480,7 @@ export class VisualizationFivePageComponent implements OnInit {
     categoryId: VendorProductCategory,
     originalColor: string
   ): void {
-    const g = d3.select<SVGGElement, unknown>(`#${categoryId}`);
+    const g = d3.selectAll<SVGGElement, unknown>(`#${categoryId}`);
     g.select('path').attr('stroke-width', 2).attr('stroke', originalColor);
     g.selectAll('circle').attr('fill', originalColor);
     g.select('g.label')
