@@ -9,7 +9,6 @@ import {
   isVendorOrganization,
   translateBuyerOrganizationCategory,
   translateVendorProductCategory,
-  BuyerOrganizationCategory,
 } from '../../models/organizations.model';
 
 @Component({
