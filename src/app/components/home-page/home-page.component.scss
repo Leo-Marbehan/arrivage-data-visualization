@@ -1,34 +1,32 @@
 @use '../../styles/flex.styles.scss';
 
-.logo-container {
-  width: 400px;
-  height: 150px;
-  overflow: hidden;
+.content {
+  padding: 0 2rem;
+  max-width: calc(960px - 4rem);
+  width: 100%;
 }
 
-.title {
-  font-size: 3rem;
-  font-weight: bold;
-  margin-block-end: 2rem;
-  max-width: 25rem;
-  text-align: center;
+p,
+ul {
+  font-size: 1.2rem;
 }
 
-:host,
-main {
-  height: 100%;
-}
+.anchor-link {
+  text-decoration: none;
+  color: black;
 
-main {
-  gap: 20rem;
-}
+  h1,
+  h2 {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
 
-.x {
-  font-size: 3rem;
-  font-weight: bold;
-}
-
-.class-name {
-  font-size: 5rem;
-  font-weight: bold;
+    > mat-icon {
+      opacity: 0.4;
+      font-size: inherit;
+      width: 1em;
+      height: 1em;
+    }
+  }
 }
