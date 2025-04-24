@@ -259,7 +259,7 @@ export class Visualization6ChartComponent implements AfterViewInit {
     viewMode: ViewMode,
     countMode: CountMode
   ) {
-    const svg = d3.select('#chart');
+    const svg = d3.select('#chart-6');
 
     const width = this.CHART_WIDTH;
     const height = this.CHART_HEIGHT;
@@ -514,7 +514,7 @@ export class Visualization6ChartComponent implements AfterViewInit {
     viewMode: ViewMode,
     shouldRender: boolean
   ) {
-    const svg = d3.select('#chart');
+    const svg = d3.select('#chart-6');
 
     const entries = Array.from(organizationsCountByMonth.entries());
 
@@ -647,7 +647,7 @@ export class Visualization6ChartComponent implements AfterViewInit {
 
   // MARK: +- Highlight Lines
   private highlightLine(dataMode: DataMode | null, year: string | null) {
-    const svg = d3.select('#chart');
+    const svg = d3.select('#chart-6');
 
     // Make everything visible
     if (dataMode === null && year === null) {
