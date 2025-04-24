@@ -1,0 +1,98 @@
+<section class="flex-column gap-1-rem">
+  <div class="flex-row align-main-space-between align-cross-end gap-1-rem">
+    <div class="flex-row gap-1-rem">
+      @let dataModes = dataModesSignal();
+      <mat-button-toggle-group multiple (change)="onDataModesChange($event)">
+        <mat-button-toggle value="all" [checked]="dataModes.includes('all')">
+          Tous
+        </mat-button-toggle>
+        <mat-button-toggle
+          value="vendors"
+          [checked]="dataModes.includes('vendors')">
+          Vendeurs
+        </mat-button-toggle>
+        <mat-button-toggle
+          value="buyers"
+          [checked]="dataModes.includes('buyers')">
+          Acheteurs
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      @let viewMode = viewModeSignal();
+      <mat-button-toggle-group (change)="onViewModeChange($event)">
+        <mat-button-toggle value="stacked" [checked]="viewMode === 'stacked'">
+          Empilé
+        </mat-button-toggle>
+        <mat-button-toggle
+          value="continuous"
+          [checked]="viewMode === 'continuous'">
+          Continu
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+
+      @let countMode = countModeSignal();
+      <mat-button-toggle-group (change)="onCountModeChange($event)">
+        <mat-button-toggle
+          value="cumulative"
+          [checked]="countMode === 'cumulative'">
+          Cumulatif
+        </mat-button-toggle>
+        <mat-button-toggle
+          value="absolute"
+          [checked]="countMode === 'absolute'">
+          Absolu
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    @let legend = legendSignal();
+    @if (legend !== null) {
+      <section class="legend flex-column">
+        <div class="flex-row">
+          <!-- Empty container for alignment -->
+          <span class="mode-column"></span>
+          @for (year of legend.years; track year) {
+            <span
+              class="year-column"
+              (mouseenter)="onHighlightedYearChange(year)"
+              (mouseleave)="onHighlightedYearChange(null)"
+              >{{ year }}</span
+            >
+          }
+        </div>
+
+        @for (mode of legend.modes; track mode.dataMode) {
+          <div class="flex-row">
+            <span
+              class="mode-column"
+              (mouseenter)="onHighlightedModeChange(mode.dataMode)"
+              (mouseleave)="onHighlightedModeChange(null)"
+              >{{ translateDataModeToString(mode.dataMode) }}</span
+            >
+
+            @for (color of mode.colors; track color; let index = $index) {
+              <span
+                class="year-column color-box"
+                [style.backgroundColor]="color"
+                [style.display]="'inline-block'"
+                (mouseenter)="
+                  onHighlightedColorChange({
+                    dataMode: mode.dataMode,
+                    year: legend.years[index],
+                  })
+                "
+                (mouseleave)="onHighlightedColorChange(null)"></span>
+            }
+          </div>
+        }
+      </section>
+    }
+  </div>
+
+  <svg
+    id="chart"
+    [style.width]="CHART_WIDTH"
+    [style.height]="CHART_HEIGHT"></svg>
+
+  <div id="tooltip"></div>
+</section>

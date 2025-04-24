@@ -16,26 +16,24 @@ import {
   Organization,
 } from '../../models/organizations.model';
 import { OrganizationsService } from '../../services/organizations.service';
-import { ToolbarComponent } from '../toolbar/toolbar.component';
 
 type DataMode = 'all' | 'vendors' | 'buyers';
 type ViewMode = 'stacked' | 'continuous';
 type CountMode = 'absolute' | 'cumulative';
-
 @Component({
-  selector: 'app-visualization-6-page',
-  imports: [ToolbarComponent, MatButtonToggleModule],
-  templateUrl: './visualization-6-page.component.html',
-  styleUrl: './visualization-6-page.component.scss',
+  selector: 'app-visualization-6-chart',
+  imports: [MatButtonToggleModule],
+  templateUrl: './visualization-6-chart.component.html',
+  styleUrl: './visualization-6-chart.component.scss',
 })
-export class Visualization6PageComponent implements AfterViewInit {
+export class Visualization6ChartComponent implements AfterViewInit {
   // MARK: Properties
   readonly CHART_WIDTH = 1280;
   readonly CHART_HEIGHT = 600;
 
   private readonly MARGIN = {
     top: 40,
-    right: 40,
+    right: 0,
     bottom: 40,
     left: 40,
   };

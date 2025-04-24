@@ -1,9 +1,12 @@
 @use '../../styles/flex.styles.scss';
 
-.content {
-  padding: 0 2rem;
+main {
+  padding: 0 2rem 2rem 2rem;
+
   max-width: calc(960px - 4rem);
-  width: 100%;
+
+  // Center the main content
+  margin: 0 auto;
 }
 
 p,
