@@ -250,9 +250,9 @@ export class Visualisation1PageComponent implements OnInit {
     const containerWidth = container.clientWidth;
     const containerHeight = container.clientHeight;
 
-    const width = containerWidth - 40;
+    const width = containerWidth - 20;
     const height = containerHeight - 100;
-    const margin = { top: 100, right: 150, bottom: 80, left: 250 };
+    const margin = { top: 120, right: 150, bottom: 70, left: 250 };
 
     const buyerTypes = Array.from(new Set(series.map(s => s.key)));
 
