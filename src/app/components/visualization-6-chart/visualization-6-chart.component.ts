@@ -16,26 +16,24 @@ import {
   Organization,
 } from '../../models/organizations.model';
 import { OrganizationsService } from '../../services/organizations.service';
-import { ToolbarComponent } from '../toolbar/toolbar.component';
 
 type DataMode = 'all' | 'vendors' | 'buyers';
 type ViewMode = 'stacked' | 'continuous';
 type CountMode = 'absolute' | 'cumulative';
-
 @Component({
-  selector: 'app-visualization-6-page',
-  imports: [ToolbarComponent, MatButtonToggleModule],
-  templateUrl: './visualization-6-page.component.html',
-  styleUrl: './visualization-6-page.component.scss',
+  selector: 'app-visualization-6-chart',
+  imports: [MatButtonToggleModule],
+  templateUrl: './visualization-6-chart.component.html',
+  styleUrl: './visualization-6-chart.component.scss',
 })
-export class Visualization6PageComponent implements AfterViewInit {
+export class Visualization6ChartComponent implements AfterViewInit {
   // MARK: Properties
-  readonly CHART_WIDTH = 1280;
+  readonly CHART_WIDTH = 1080;
   readonly CHART_HEIGHT = 600;
 
   private readonly MARGIN = {
     top: 40,
-    right: 40,
+    right: 0,
     bottom: 40,
     left: 40,
   };
@@ -261,7 +259,7 @@ export class Visualization6PageComponent implements AfterViewInit {
     viewMode: ViewMode,
     countMode: CountMode
   ) {
-    const svg = d3.select('#chart');
+    const svg = d3.select('#chart-6');
 
     const width = this.CHART_WIDTH;
     const height = this.CHART_HEIGHT;
@@ -368,11 +366,20 @@ export class Visualization6PageComponent implements AfterViewInit {
           .axisBottom(x)
           .tickFormat(d => (viewMode === 'stacked' ? d : d.split('-')[1]))
       );
+
     svg
       .append('g')
       .attr('class', 'y-axis')
       .attr('transform', `translate(${margin.left},0)`)
       .call(d3.axisLeft(y));
+
+    // Rotate the x-axis labels
+    svg
+      .selectAll('.x-axis .tick text')
+      .attr('transform', 'rotate(-45)')
+      .attr('text-anchor', 'end')
+      .attr('dx', '-0.5em')
+      .attr('dy', '0.5em');
 
     // Render the data
     this.renderData(
@@ -516,11 +523,9 @@ export class Visualization6PageComponent implements AfterViewInit {
     viewMode: ViewMode,
     shouldRender: boolean
   ) {
-    const svg = d3.select('#chart');
+    const svg = d3.select('#chart-6');
 
     const entries = Array.from(organizationsCountByMonth.entries());
-
-    console.log(viewMode, dataMode, shouldRender);
 
     // Display the lines
     const line = d3
@@ -649,7 +654,7 @@ export class Visualization6PageComponent implements AfterViewInit {
 
   // MARK: +- Highlight Lines
   private highlightLine(dataMode: DataMode | null, year: string | null) {
-    const svg = d3.select('#chart');
+    const svg = d3.select('#chart-6');
 
     // Make everything visible
     if (dataMode === null && year === null) {
