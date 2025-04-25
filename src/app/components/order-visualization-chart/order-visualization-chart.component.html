@@ -42,24 +42,27 @@
         </mat-form-field>
       }
     </div>
-    
-    <div class="global-toggle">
-      <button mat-raised-button 
-        color="primary" 
-        (click)="toggleGlobalView()"
-        [class.active]="isGlobalView()">
-        {{ isGlobalView() ? 'Retour à la vue filtrée' : 'Vue globale du réseau' }}
-      </button>
-    </div>
-    
+
     <!-- Info text when in filtered mode after clicking on a node -->
     <div class="filter-info" *ngIf="focusedNodeId() && isGlobalView()">
       <span *ngIf="focusedNodeId() as nodeId">
-        Filtré sur: <strong>{{ getNodeName(nodeId) }}</strong>      
+        Filtré sur: <strong>{{ getNodeName(nodeId) }}</strong>
         <button mat-icon-button (click)="resetFocus()">
           <mat-icon>close</mat-icon>
         </button>
       </span>
+    </div>
+
+    <div class="global-toggle">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="toggleGlobalView()"
+        [class.active]="isGlobalView()">
+        {{
+          isGlobalView() ? 'Retour à la vue filtrée' : 'Vue globale du réseau'
+        }}
+      </button>
     </div>
   </div>
 
