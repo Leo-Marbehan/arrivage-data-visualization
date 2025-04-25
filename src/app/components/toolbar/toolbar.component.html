@@ -5,35 +5,35 @@
       <span>INF8808 - Arrivage</span>
     </button>
 
-    <button mat-button (click)="navigateToVisualization(1)">
-      <mat-icon>bar_chart</mat-icon>
-      <span>Visualisation 1</span>
+    <button mat-button [matMenuTriggerFor]="menu">
+      <mat-icon>arrow_drop_down</mat-icon>
+      <span>Visualisations</span>
     </button>
+    <mat-menu #menu="matMenu">
+      <button mat-menu-item (click)="navigateToVisualization(1)">
+        <span>Ventes/acheteurs par produit</span>
+      </button>
 
-    <button mat-button (click)="navigateToVisualization(2)">
-      <mat-icon>bar_chart</mat-icon>
-      <span>Acheteurs: commandes et dépenses</span>
-    </button>
+      <button mat-menu-item (click)="navigateToVisualization(2)">
+        <span>Acheteurs: commandes et dépenses</span>
+      </button>
 
-    <button mat-button (click)="navigateToVisualization(3)">
-      <mat-icon>bar_chart</mat-icon>
-      <span>Flux marchands régionaux</span>
-    </button>
+      <button mat-menu-item (click)="navigateToVisualization(3)">
+        <span>Flux marchands régionaux</span>
+      </button>
 
-    <button mat-button (click)="navigateToVisualization(4)">
-      <mat-icon>bar_chart</mat-icon>
-      <span>Visualisation 4</span>
-    </button>
+      <button mat-menu-item (click)="navigateToVisualization(5)">
+        <span>Évolution des commandes</span>
+      </button>
 
-    <button mat-button (click)="navigateToVisualization(5)">
-      <mat-icon>bar_chart</mat-icon>
-      <span>Visualisation 5</span>
-    </button>
+      <button mat-menu-item (click)="navigateToVisualization(4)">
+        <span>Relations vendeurs-acheteurs</span>
+      </button>
 
-    <button mat-button (click)="navigateToVisualization(6)">
-      <mat-icon>bar_chart</mat-icon>
-      <span>Visualisation 6</span>
-    </button>
+      <button mat-menu-item (click)="navigateToVisualization(6)">
+        <span>Évolution des utilisateurs</span>
+      </button>
+    </mat-menu>
   </div>
 
   <div class="flex-row gap-0-5-rem">

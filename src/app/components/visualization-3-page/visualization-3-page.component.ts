@@ -215,7 +215,7 @@ export class Visualization3PageComponent {
         if (d1.source.index === d1.target.index) {
           const from_and_to_before =
             (d1.source.endAngle + d1.source.startAngle) / 2 > Math.PI;
-          const from_and_to_name = `${from_and_to_before ? '(depuis & vers) ' : ''}${this.v3ps.names[d1.source.index]}${from_and_to_before ? '' : ' (depuis & vers)'}`;
+          const from_and_to_name = `${from_and_to_before ? '(interne) ' : ''}${this.v3ps.names[d1.source.index]}${from_and_to_before ? '' : ' (interne)'}`;
           this.set_label_name(d1.source.index, from_and_to_name);
         } else {
           const from_before =

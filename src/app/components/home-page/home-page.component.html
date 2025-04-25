@@ -1,204 +1,158 @@
 <app-toolbar />
-<main class="flex-column align-center">
-  <div class="content">
-    <a
-      class="logo-container flex-column align-center"
-      href="https://arrivage.com"
-      target="_blank">
-      <img src="images/arrivage-logo.png" alt="Arrivage Logo" class="logo" />
-    </a>
+<main>
+  <a
+    class="logo-container flex-column align-center"
+    href="https://arrivage.com"
+    target="_blank">
+    <img src="images/arrivage-logo.png" alt="Arrivage Logo" class="logo" />
+  </a>
 
-    <p>
-      Arrivage est une OBNL qui développe des outils et des service pour
-      faciliter l'approvisionnement local en direct des agriculteurs et artisans
-      depuis 2015. Sa plateforme web regroupe près de 2500 utilisateurs
-      Québécois qui participent à la création d'un réseau alimentaire durable,
-      soutiennent l'économie régionale et réduisent leur empreinte carbone.
-    </p>
+  <p>
+    Arrivage est une OBNL qui développe des outils et des service pour faciliter
+    l'approvisionnement local en direct des agriculteurs et artisans depuis
+    2015. Sa plateforme web regroupe près de 2500 utilisateurs Québécois qui
+    participent à la création d'un réseau alimentaire durable, soutiennent
+    l'économie régionale et réduisent leur empreinte carbone.
+  </p>
 
-    <a href="home#project-title" class="anchor-link">
-      <h1 id="project-title">
-        Notre projet
-        <mat-icon>link</mat-icon>
-      </h1>
-    </a>
+  <a href="home#project-title" class="anchor-link">
+    <h1 id="project-title">
+      Notre projet
+      <mat-icon>link</mat-icon>
+    </h1>
+  </a>
 
-    <p>
-      Arrivage nous a partagé des données anonymisées sur ses utilisateurs et
-      leurs commandes. Nous avons développé une application web qui offre
-      plusieurs visualisations de ces données. Ces visualisations permettent de
-      mieux comprendre l'écosystèmes d'acheteurs et de vendeurs de la plateforme
-      et de mettre en évidence les tendances d'achat et de vente.
-    </p>
+  <p>
+    Arrivage nous a partagé des données anonymisées sur ses utilisateurs et
+    leurs commandes. Nous avons développé une application web qui offre
+    plusieurs visualisations de ces données. Ces visualisations permettent de
+    mieux comprendre l'écosystèmes d'acheteurs et de vendeurs de la plateforme
+    et de mettre en évidence les tendances d'achat et de vente.
+  </p>
 
-    <p>L'ensemble des données peut être consulté ici:</p>
+  <p>L'ensemble des données peut être consulté ici:</p>
 
-    <button mat-raised-button (click)="navigateToRawData()">
-      Données brutes
-    </button>
+  <button mat-raised-button (click)="navigateToRawData()">
+    Données brutes
+  </button>
 
-    <a href="home#buyers" class="anchor-link">
-      <h2 id="buyers">
-        Acheteurs
-        <mat-icon>link</mat-icon>
-      </h2>
-    </a>
+  <a href="home#buyers" class="anchor-link">
+    <h2 id="buyers">
+      Acheteurs
+      <mat-icon>link</mat-icon>
+    </h2>
+  </a>
 
-    <p>
-      L'équipe d'Arrivage est en étroite collaboration avec les vendeurs de la
-      plateforme pour leur offrir un service personnalisé et de qualité.
-      Cependant, il est plus difficile pour eux de connaître leurs acheteurs.
-      Nous avons donc développé une visualisation qui permet de mieux comprendre
-      les acheteurs d'Arrivage.
-    </p>
+  <p>
+    L'équipe d'Arrivage est en étroite collaboration avec les vendeurs de la
+    plateforme pour leur offrir un service personnalisé et de qualité.
+    Cependant, il est plus difficile pour eux de connaître leurs acheteurs. Nous
+    avons donc développé une visualisation qui permet de mieux comprendre les
+    acheteurs d'Arrivage.
+  </p>
 
-    <p>
-      Nous nous sommes plus particulièrement penchés sur les comportements des
-      différentes catégories d'acheteurs. Nous cherchons quels sont les
-      catégories les plus actives et quels sont les produits les plus populaires
-      pour ces acheteurs.
-    </p>
+  <p>
+    Nous nous sommes plus particulièrement penchés sur les comportements des
+    différentes catégories d'acheteurs. Nous cherchons quels sont les catégories
+    les plus actives et quels sont les produits les plus populaires pour ces
+    acheteurs.
+  </p>
 
-    <!-- TODO CLICK -->
-    <button mat-raised-button disabled>
-      Voir la visualisation "Acheteurs"
-    </button>
+  <button mat-raised-button (click)="navigateToVisualization(1)">
+    <mat-icon>bar_chart</mat-icon>
+    <span>Ventes/acheteurs par produit</span>
+  </button>
 
-    <a href="home#orders" class="anchor-link">
-      <h2 id="orders">
-        Commandes
-        <mat-icon>link</mat-icon>
-      </h2>
-    </a>
+  <button mat-raised-button (click)="navigateToVisualization(2)">
+    <mat-icon>bar_chart</mat-icon>
+    <span>Acheteurs: commandes et dépenses</span>
+  </button>
 
-    <p>
-      La principale fonctionnalité de la plateforme Arrivage est de permettre
-      aux acheteurs de passer des commandes en ligne. Il est facile pour les
-      employés d'Arrivage de suivre l'évolution d'une commande, mais il est plus
-      difficile de remarquer des tendances générales sur l'ensemble des
-      commandes passées sur la plateforme.
-    </p>
+  <a href="home#orders" class="anchor-link">
+    <h2 id="orders">
+      Commandes
+      <mat-icon>link</mat-icon>
+    </h2>
+  </a>
 
-    <p>
-      Nous avons choisis, après avoir discuter avec l'équipe d'Arrivage, de nous
-      concentrer sur deux aspects : le trajet des produits commandés entre les
-      différentes régions du Québec et l'évolution de ces commandes au fil du
-      temps.
-    </p>
+  <p>
+    La principale fonctionnalité de la plateforme Arrivage est de permettre aux
+    acheteurs de passer des commandes en ligne. Il est facile pour les employés
+    d'Arrivage de suivre l'évolution d'une commande, mais il est plus difficile
+    de remarquer des tendances générales sur l'ensemble des commandes passées
+    sur la plateforme.
+  </p>
 
-    <!-- TODO CLICK -->
-    <button mat-raised-button disabled>
-      Voir la visualisation "Commandes"
-    </button>
+  <p>
+    Nous avons choisis, après avoir discuter avec l'équipe d'Arrivage, de nous
+    concentrer sur deux aspects : le trajet des produits commandés entre les
+    différentes régions du Québec et l'évolution de ces commandes au fil du
+    temps.
+  </p>
 
-    <a href="home#orders-by-region" class="anchor-link">
-      <h2 id="orders-by-region">
-        Utilisateurs
-        <mat-icon>link</mat-icon>
-      </h2>
-    </a>
+  <button mat-raised-button (click)="navigateToVisualization(3)">
+    <mat-icon>bar_chart</mat-icon>
+    <!-- TODO -->
+    <span>Visualisation 3</span>
+  </button>
 
-    <p>
-      Un dernier point que Arrivage a soulevé est la difficulté de suivre les
-      utilisateurs de la plateforme. En effet, comme pour les commandes, il est
-      facile de suivre l'évolution d'un utilisateur, mais il est plus difficile
-      de voir des tendances générales.
-    </p>
+  <button mat-raised-button (click)="navigateToVisualization(5)">
+    <mat-icon>bar_chart</mat-icon>
+    <span>Évolution des commandes</span>
+  </button>
 
-    <p>
-      Pour cela, nous avons développé une visualisation qui permet de voir
-      l'évolution des utilisateurs au fil du temps, ainsi que leurs
-      interactions.
-    </p>
+  <a href="home#orders-by-region" class="anchor-link">
+    <h2 id="orders-by-region">
+      Utilisateurs
+      <mat-icon>link</mat-icon>
+    </h2>
+  </a>
 
-    <!-- TODO CLICK -->
-    <button mat-raised-button disabled>
-      Voir la visualisation "Utilisateurs"
-    </button>
+  <p>
+    Un dernier point que Arrivage a soulevé est la difficulté de suivre les
+    utilisateurs de la plateforme. En effet, comme pour les commandes, il est
+    facile de suivre l'évolution d'un utilisateur, mais il est plus difficile de
+    voir des tendances générales.
+  </p>
 
-    <a href="home#team" class="anchor-link">
-      <h1 id="team">
-        Notre équipe
-        <mat-icon>link</mat-icon>
-      </h1>
-    </a>
+  <p>
+    Pour cela, nous avons développé une visualisation qui permet de voir
+    l'évolution des utilisateurs au fil du temps, ainsi que leurs interactions.
+  </p>
 
-    <p>
-      Nous avons réalisé ce projet dans le cadre du cours INF8808E -
-      Visualisation de données. Nous somme un groupe de 6 étudiants de l'école
-      Polytechnique de Montréal. Nous avons utilisé le framework Angular pour le
-      développement de l'application web et la librairie D3.js pour la
-      visualisation des données.
-    </p>
+  <!-- TODO CLICK -->
+  <button mat-raised-button (click)="navigateToVisualization(4)">
+    <mat-icon>bar_chart</mat-icon>
+    <span>Relations vendeurs-acheteurs</span>
+  </button>
 
-    <p>Voici notre équipe:</p>
+  <button mat-raised-button (click)="navigateToVisualization(6)">
+    <mat-icon>bar_chart</mat-icon>
+    <span>Évolution des utilisateurs</span>
+  </button>
 
-    <ul>
-      <li>Zarine Amy Ardekani-Djoneidi</li>
-      <li>Lucas Bouchard</li>
-      <li>Léo Marbehan</li>
-      <li>Meriem Ben Hadj</li>
-      <li>Fatima Mellata</li>
-      <li>Estelle Polyte</li>
-    </ul>
+  <a href="home#team" class="anchor-link">
+    <h1 id="team">
+      Notre équipe
+      <mat-icon>link</mat-icon>
+    </h1>
+  </a>
 
-    <!-- <section class="menu flex-column align-center gap-1-rem"> -->
-    <!-- <h1 class="title">Visualisation de données</h1>
+  <p>
+    Nous avons réalisé ce projet dans le cadre du cours INF8808E - Visualisation
+    de données. Nous somme un groupe de 6 étudiants de l'école Polytechnique de
+    Montréal. Nous avons utilisé le framework Angular pour le développement de
+    l'application web et la librairie D3.js pour la visualisation des données.
+  </p>
 
-    <div class="flex-row gap-1-rem">
-      <article class="flex-column gap-1-rem">
-        <button mat-raised-button (click)="navigateToVisualization(1)">
-          Visualisation 1
-        </button>
-        <button mat-raised-button (click)="navigateToVisualization(2)">
-          Acheteurs: commandes et dépenses
-        </button>
-        <button mat-raised-button (click)="navigateToVisualization(3)">
-          Visualisation 3
-        </button>
-      </article>
-      <article class="flex-column gap-1-rem">
-        <button mat-raised-button (click)="navigateToVisualization(4)">
-          Visualisation 4
-        </button>
-        <button mat-raised-button (click)="navigateToVisualization(5)">
-          Visualisation 5
-        </button>
-        <button mat-raised-button (click)="navigateToVisualization(6)">
-          Visualisation 6
-        </button>
-      </article>
-    </div> -->
-    <!--
-    <div class="flex-row gap-1-rem">
-      <button mat-raised-button (click)="navigateToRawData()">
-        Données brutes
-      </button>
-      <a
-        mat-raised-button
-        href="https://github.com/Leo-Marbehan/arrivage-data-visualization"
-        target="_blank">
-        <div class="flex-row align-center gap-0-5-rem">
-          <mat-icon>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 98 96">
-              <path
-                fill-rule="evenodd"
-                clip-rule="evenodd"
-                d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.235 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.243-5.378-22.243-24.283 0-5.378 1.94-9.778 5.014-13.2-.485-1.222-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.816.485 13.038 3.155 3.422 5.015 7.822 5.015 13.2 0 18.905-11.404 23.06-22.324 24.283 1.78 1.548 3.316 4.481 3.316 9.126 0 6.6-.08 11.897-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.935 33.405-46.691C97.707 22 75.788 0 48.854 0z" />
-            </svg>
-          </mat-icon>
-          <span> Github </span>
-        </div>
-      </a>
-    </div>
-  </section>
+  <p>Voici notre équipe:</p>
 
-  <section class="flex-column align-center">
-    <div class="logo-container flex-column align-center">
-      <img src="images/arrivage-logo.png" alt="Arrivage Logo" class="logo" />
-    </div>
-    <span class="x"> X </span>
-    <div class="class-name">INF8808E</div>
-  </section> -->
-  </div>
+  <ul>
+    <li>Zarine Amy Ardekani-Djoneidi</li>
+    <li>Lucas Bouchard</li>
+    <li>Léo Marbehan</li>
+    <li>Meriem Ben Hadj</li>
+    <li>Fatima Mellata</li>
+    <li>Estelle Polyte</li>
+  </ul>
 </main>
