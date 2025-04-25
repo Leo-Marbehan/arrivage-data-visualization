@@ -43,4 +43,9 @@ export class RawDataPageComponent {
       view === 'organizations' ? 'orders' : 'organizations'
     );
   }
+
+  async onResetDataButtonClick(): Promise<void> {
+    await this.organizationsService.resetOrganizations();
+    await this.ordersService.resetOrders();
+  }
 }

@@ -1,0 +1,28 @@
+@use '../../styles/flex.styles.scss';
+
+.legend {
+  width: 300px;
+
+  cursor: pointer;
+
+  & > div {
+    & > span {
+      border: 1px solid transparent;
+
+      &.mode-column {
+        flex: 2;
+        text-align: end;
+        padding-inline-end: 1rem;
+      }
+
+      &.year-column {
+        flex: 1;
+        text-align: center;
+      }
+
+      &.color-box:hover {
+        border: 1px solid yellow;
+      }
+    }
+  }
+}

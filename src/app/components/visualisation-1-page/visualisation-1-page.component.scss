@@ -37,9 +37,27 @@ svg {
 .segment-label {
   pointer-events: none;
   font-weight: bold;
-  text-shadow: 
+  text-shadow:
     -1px -1px 0 white,
     1px -1px 0 white,
     -1px 1px 0 white,
     1px 1px 0 white;
+}
+
+.header {
+  margin-bottom: 30px;
+  text-align: center;
+
+  h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #333;
+  }
+
+  p {
+    font-size: 16px;
+    color: #666;
+    max-width: 800px;
+    margin: 0 auto;
+  }
 }

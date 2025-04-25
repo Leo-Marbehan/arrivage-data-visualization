@@ -2,6 +2,7 @@ import { Injectable, signal, WritableSignal } from '@angular/core';
 import { environment } from '../environment';
 import {
   BuyerOrganization,
+  EXCLUDED_CATEGORIES,
   Language,
   mapBuyerOrganizationCategory,
   mapVendorProductCategory,
@@ -22,6 +23,11 @@ export class OrganizationsService {
     'data/dataset-arrivage-organizations - DB_BUYERS_PRO.csv';
   private readonly BUYERS_NOT_PRO_FILE_PATH =
     'data/dataset-arrivage-organizations - DB_BUYERS_NOPRO.csv';
+
+  private readonly VENDOR_ORGANIZATIONS_LOCAL_STORAGE_KEY =
+    'arrivage-data-visualization/vendor-organizations';
+  private readonly BUYER_ORGANIZATIONS_LOCAL_STORAGE_KEY =
+    'arrivage-data-visualization/buyer-organizations';
 
   private readonly _isInitializedSignal: WritableSignal<boolean> =
     signal(false);
@@ -57,19 +63,89 @@ export class OrganizationsService {
     return [...this._vendorOrganizations, ...this._buyerOrganizations];
   }
 
+  async resetOrganizations(): Promise<void> {
+    localStorage.removeItem(this.VENDOR_ORGANIZATIONS_LOCAL_STORAGE_KEY);
+    localStorage.removeItem(this.BUYER_ORGANIZATIONS_LOCAL_STORAGE_KEY);
+
+    this._vendorOrganizations = [];
+    this._buyerOrganizations = [];
+
+    await this.loadOrganizations();
+  }
+
   private async loadOrganizations() {
-    const vendorOrganizations = await this.loadVendors();
-    const proBuyerOrganizations = await this.loadBuyersPro();
-    const notProBuyerOrganizations = await this.loadBuyersNotPro();
+    this.isInitializedSignal.set(false);
 
-    this._vendorOrganizations = vendorOrganizations;
+    if (!this.getFromLocalStorage()) {
+      const vendorOrganizations = await this.loadVendors();
+      const proBuyerOrganizations = await this.loadBuyersPro();
+      const notProBuyerOrganizations = await this.loadBuyersNotPro();
 
-    this._buyerOrganizations = [
-      ...proBuyerOrganizations,
-      ...notProBuyerOrganizations,
-    ];
+      this._vendorOrganizations = vendorOrganizations;
+
+      this._buyerOrganizations = [
+        ...proBuyerOrganizations,
+        ...notProBuyerOrganizations,
+      ];
+
+      this.setToLocalStorage();
+    }
 
     this._isInitializedSignal.set(true);
+  }
+
+  private getFromLocalStorage(): boolean {
+    const vendorOrganizations = localStorage.getItem(
+      this.VENDOR_ORGANIZATIONS_LOCAL_STORAGE_KEY
+    );
+    const buyerOrganizations = localStorage.getItem(
+      this.BUYER_ORGANIZATIONS_LOCAL_STORAGE_KEY
+    );
+
+    if (
+      vendorOrganizations === null ||
+      buyerOrganizations === null ||
+      vendorOrganizations === '' ||
+      buyerOrganizations === ''
+    ) {
+      return false;
+    }
+
+    const parsedVendorOrganizations = JSON.parse(
+      vendorOrganizations
+    ) as VendorOrganization[];
+    const parsedBuyerOrganizations = JSON.parse(
+      buyerOrganizations
+    ) as BuyerOrganization[];
+
+    const mappedVendorOrganizations = parsedVendorOrganizations.map(
+      vendorOrganization => ({
+        ...vendorOrganization,
+        creationTimestamp: new Date(vendorOrganization.creationTimestamp),
+      })
+    );
+    const mappedBuyerOrganizations = parsedBuyerOrganizations.map(
+      buyerOrganization => ({
+        ...buyerOrganization,
+        creationTimestamp: new Date(buyerOrganization.creationTimestamp),
+      })
+    );
+
+    this._vendorOrganizations = mappedVendorOrganizations;
+    this._buyerOrganizations = mappedBuyerOrganizations;
+
+    return true;
+  }
+
+  private setToLocalStorage(): void {
+    localStorage.setItem(
+      this.VENDOR_ORGANIZATIONS_LOCAL_STORAGE_KEY,
+      JSON.stringify(this._vendorOrganizations)
+    );
+    localStorage.setItem(
+      this.BUYER_ORGANIZATIONS_LOCAL_STORAGE_KEY,
+      JSON.stringify(this._buyerOrganizations)
+    );
   }
 
   private async loadVendors(): Promise<VendorOrganization[]> {
@@ -165,7 +241,8 @@ export class OrganizationsService {
     for (const rawCategory of RAW_VENDOR_PRODUCT_CATEGORIES) {
       if (
         rawVendorOrganization[rawCategory] !== undefined &&
-        rawVendorOrganization[rawCategory] !== ''
+        rawVendorOrganization[rawCategory] !== '' &&
+        !EXCLUDED_CATEGORIES.includes(rawCategory)
       ) {
         try {
           productCategories.push(mapVendorProductCategory(rawCategory));
@@ -181,7 +258,9 @@ export class OrganizationsService {
 
     const vendorOrganization: VendorOrganization = {
       ...organization,
-      productCategories,
+      productCategories: productCategories.filter(
+        (value, index, array) => array.indexOf(value) === index
+      ),
     };
 
     return vendorOrganization;

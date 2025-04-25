@@ -1,7 +1,6 @@
 .visualization-container {
   display: flex;
   flex-direction: column;
-  width: 100%;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -12,6 +11,7 @@
   gap: 16px;
   margin-bottom: 20px;
   align-items: center;
+  min-height: 56px;
 }
 
 .view-toggle {
@@ -23,17 +23,63 @@
   flex-grow: 1;
 }
 
-.chart-container {
-  width: 100%;
-  min-height: 400px;
-  position: relative;
+.global-toggle {
+  button {
+    &.active {
+      background-color: #3f51b5;
+      color: white;
+    }
+  }
+
+  margin-left: auto;
 }
 
-.chart {
-  width: 100%;
-  overflow-x: auto;
-  overflow-y: auto;
-  max-height: 600px;
+.filter-info {
+  display: flex;
+  align-items: center;
+  background-color: #e3f2fd;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-left: 8px;
+
+  span {
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+
+    strong {
+      margin: 0 4px;
+    }
+
+    button {
+      margin-left: 8px;
+    }
+  }
+}
+
+.chart-container {
+  position: relative;
+  border: 1px solid #ddd;
+}
+
+#chart {
+  svg {
+    cursor: move; // Indicate that the chart is pannable
+  }
+}
+
+.zoom-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+
+  button {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .no-data {
@@ -47,40 +93,88 @@
   background-color: rgba(255, 255, 255, 0.9);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   border: 1px solid #eee;
   width: 80%;
   max-width: 400px;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  opacity: 0.9;
+  z-index: 1000;
+  pointer-events: none;
+  transition: opacity 200ms ease-in-out;
 }
 
 :host ::ng-deep {
   .bar:hover {
     cursor: pointer;
   }
-  
-  .x-axis, .y-axis {
-    .domain, .tick line {
+
+  .x-axis,
+  .y-axis {
+    .domain,
+    .tick line {
       stroke: #ccc;
     }
-    
+
     text {
       font-size: 12px;
       fill: #333;
     }
   }
-  
+
   .axis-label {
     font-weight: bold;
     font-size: 14px;
   }
-  
+
   .legend-title {
     font-family: 'Roboto', sans-serif;
     fill: #555;
   }
-  
+
   .tooltip {
     z-index: 1000;
+  }
+
+  .links line {
+    stroke-opacity: 0.6;
+    cursor: default;
+  }
+
+  .nodes circle {
+    cursor: pointer;
+    stroke-width: 2px;
+    transition: fill 0.2s;
+
+    &.focused {
+      stroke: #ff5722;
+      stroke-width: 3px;
+    }
+  }
+
+  .nodes text {
+    pointer-events: none;
+    text-shadow:
+      0 1px 0 #fff,
+      1px 0 0 #fff,
+      0 -1px 0 #fff,
+      -1px 0 0 #fff;
+  }
+
+  .legend {
+    font-family: 'Roboto', sans-serif;
+  }
+
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
   }
 }
 
@@ -90,9 +184,22 @@
     flex-direction: column;
     align-items: stretch;
   }
-  
-  .view-toggle, .entity-selector {
+
+  .view-toggle,
+  .entity-selector,
+  .global-toggle {
     width: 100%;
     min-width: auto;
+    margin-bottom: 8px;
+  }
+
+  #chart svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .zoom-controls {
+    bottom: 10px;
+    right: 10px;
   }
 }

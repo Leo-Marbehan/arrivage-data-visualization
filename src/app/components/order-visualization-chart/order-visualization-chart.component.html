@@ -1,38 +1,85 @@
 <div class="visualization-container">
   <div class="controls">
-    <div class="view-toggle">
-      <mat-button-toggle-group [value]="viewMode()" (change)="onViewModeChange($event.value)">
-        <mat-button-toggle value="buyersByVendor">Acheteurs par vendeur</mat-button-toggle>
-        <mat-button-toggle value="vendorsByBuyer">Vendeurs par acheteur</mat-button-toggle>
+    <div class="view-toggle" *ngIf="!isGlobalView()">
+      <mat-button-toggle-group
+        [value]="viewMode()"
+        (change)="onViewModeChange($event.value)">
+        <mat-button-toggle value="buyersByVendor"
+          >Acheteurs par vendeur</mat-button-toggle
+        >
+        <mat-button-toggle value="vendorsByBuyer"
+          >Vendeurs par acheteur</mat-button-toggle
+        >
       </mat-button-toggle-group>
     </div>
-    
-    <div class="entity-selector">
+
+    <div class="entity-selector" *ngIf="!isGlobalView()">
       @if (viewMode() === 'buyersByVendor') {
         <mat-form-field appearance="fill">
           <mat-label>Choisir un vendeur</mat-label>
-          <mat-select [value]="selectedEntityId()" (selectionChange)="onEntitySelectionChange($event.value)">
+          <mat-select
+            [value]="selectedEntityId()"
+            (selectionChange)="onEntitySelectionChange($event.value)">
             @for (vendor of activeVendors(); track vendor.id) {
-              <mat-option [value]="vendor.id">{{ vendor.displayName }}</mat-option>
+              <mat-option [value]="vendor.id">{{
+                vendor.displayName
+              }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
       } @else {
         <mat-form-field appearance="fill">
           <mat-label>Choisir un acheteur</mat-label>
-          <mat-select [value]="selectedEntityId()" (selectionChange)="onEntitySelectionChange($event.value)">
+          <mat-select
+            [value]="selectedEntityId()"
+            (selectionChange)="onEntitySelectionChange($event.value)">
             @for (buyer of activeBuyers(); track buyer.id) {
-              <mat-option [value]="buyer.id">{{ buyer.displayName }}</mat-option>
+              <mat-option [value]="buyer.id">{{
+                buyer.displayName
+              }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
       }
     </div>
+
+    <!-- Info text when in filtered mode after clicking on a node -->
+    <div class="filter-info" *ngIf="focusedNodeId() && isGlobalView()">
+      <span *ngIf="focusedNodeId() as nodeId">
+        Filtré sur: <strong>{{ getNodeName(nodeId) }}</strong>
+        <button mat-icon-button (click)="resetFocus()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </span>
+    </div>
+
+    <div class="global-toggle">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="toggleGlobalView()"
+        [class.active]="isGlobalView()">
+        {{
+          isGlobalView() ? 'Retour à la vue filtrée' : 'Vue globale du réseau'
+        }}
+      </button>
+    </div>
   </div>
-  
+
   <div class="chart-container">
-    <div #chart class="chart"></div>
-    @if (chartData().length === 0) {
+    <div id="chart"></div>
+    <div class="zoom-controls" *ngIf="isGlobalView()">
+      <button mat-mini-fab color="primary" (click)="zoomIn()">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button mat-mini-fab color="primary" (click)="resetZoom()">
+        <mat-icon>home</mat-icon>
+      </button>
+      <button mat-mini-fab color="primary" (click)="zoomOut()">
+        <mat-icon>remove</mat-icon>
+      </button>
+    </div>
+    @if (networkData().nodes.length === 0) {
       <div class="no-data">
         <p>Aucune donnée disponible. Veuillez sélectionner une autre option.</p>
       </div>

@@ -1,0 +1,45 @@
+<app-toolbar></app-toolbar>
+
+<div class="visualization-page-container">
+  <div class="header">
+    <h2>Évolution des commandes</h2>
+    <p>
+      Cette visualisation interactive permet d'explorer l'évolution temporelle
+      du nombre de commandes contenant différents types de produits.
+    </p>
+  </div>
+
+  <div class="visualization-section">
+    <div class="controls">
+      <mat-button-toggle-group
+        class="toggle"
+        [value]="false"
+        (change)="changeView($event.value)">
+        <mat-button-toggle [value]="false">Total</mat-button-toggle>
+        <mat-button-toggle [value]="true">Détail</mat-button-toggle>
+      </mat-button-toggle-group>
+      <p class="controls-title">Inclure les commandes contenant:</p>
+      @for (filter of categoryFilters; track $index) {
+        <mat-checkbox
+          (mouseenter)="onCheckboxMouseEnter(filter.categoryId)"
+          (mouseleave)="onCheckboxMouseLeave(filter.categoryId)"
+          color="warm"
+          class="checkbox"
+          [class.hovered]="filter.categoryId === highlightedCategory"
+          [checked]="filter.displayed"
+          (change)="toggleFilter(filter, $event.checked)">
+          {{ filter.name }}
+        </mat-checkbox>
+      }
+      <div class="legend">
+        @for (season of seasons; track $index) {
+          <div class="season">
+            <div class="color" [style.background-color]="season.color"></div>
+            {{ season.name }}
+          </div>
+        }
+      </div>
+    </div>
+    <div #chart></div>
+  </div>
+</div>

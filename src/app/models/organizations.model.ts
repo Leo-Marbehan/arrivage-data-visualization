@@ -42,10 +42,7 @@ export type VendorProductCategory =
   | 'wild-product'
   | 'seafood'
   | 'oils-and-vinegars'
-  | 'alcohol-free-drink'
-  | 'alcohol-below-18-drink'
-  | 'alcohol-above-18-drink'
-  | 'non-food-products';
+  | 'drink';
 
 export const VENDOR_PRODUCT_CATEGORIES: VendorProductCategory[] = [
   'vegetable-fruit',
@@ -57,10 +54,7 @@ export const VENDOR_PRODUCT_CATEGORIES: VendorProductCategory[] = [
   'wild-product',
   'seafood',
   'oils-and-vinegars',
-  'alcohol-free-drink',
-  'alcohol-below-18-drink',
-  'alcohol-above-18-drink',
-  'non-food-products',
+  'drink',
 ];
 
 export const RAW_VENDOR_PRODUCT_CATEGORIES: string[] = [
@@ -77,6 +71,10 @@ export const RAW_VENDOR_PRODUCT_CATEGORIES: string[] = [
   'alcohol_below_18_drink',
   'alcohol_above_18_drink',
   'non_food_products',
+];
+
+export const EXCLUDED_CATEGORIES = [
+  'non_food_products', // Contains only 1 order
 ];
 
 export function mapVendorProductCategory(
@@ -102,13 +100,10 @@ export function mapVendorProductCategory(
     case 'oils_and_vinegars':
       return 'oils-and-vinegars';
     case 'alcohol_free_drink':
-      return 'alcohol-free-drink';
     case 'alcohol_below_18_drink':
-      return 'alcohol-below-18-drink';
     case 'alcohol_above_18_drink':
-      return 'alcohol-above-18-drink';
-    case 'non_food_products':
-      return 'non-food-products';
+      // Group all drinks because each category is very small
+      return 'drink';
     default:
       throw new Error(`Invalid raw product category: ${rawProductCategory}`);
   }
@@ -136,14 +131,8 @@ export function translateVendorProductCategory(
       return 'Produits de la mer';
     case 'oils-and-vinegars':
       return 'Huiles et vinaigres';
-    case 'alcohol-free-drink':
-      return 'Boissons sans alcool';
-    case 'alcohol-below-18-drink':
-      return 'Boissons alcoolisées (< 18%)';
-    case 'alcohol-above-18-drink':
-      return 'Boissons alcoolisées (> 18%)';
-    case 'non-food-products':
-      return 'Produits non alimentaires';
+    case 'drink':
+      return 'Boissons';
   }
 }
 
