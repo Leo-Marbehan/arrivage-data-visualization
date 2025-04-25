@@ -1,7 +1,6 @@
 .visualization-container {
   display: flex;
   flex-direction: column;
-  width: 100%;
   padding: 20px;
   box-sizing: border-box;
 }
@@ -12,6 +11,7 @@
   gap: 16px;
   margin-bottom: 20px;
   align-items: center;
+  min-height: 56px;
 }
 
 .view-toggle {
@@ -30,17 +30,8 @@
       color: white;
     }
   }
-  
-  // Make the global view button more prominent when it's the only control visible
-  &:only-child {
-    margin-right: auto;
-    
-    button {
-      padding: 0 20px;
-      height: 40px;
-      font-size: 14px;
-    }
-  }
+
+  margin-left: auto;
 }
 
 .filter-info {
@@ -50,16 +41,16 @@
   padding: 8px 12px;
   border-radius: 4px;
   margin-left: 8px;
-  
+
   span {
     display: flex;
     align-items: center;
     font-size: 14px;
-    
+
     strong {
       margin: 0 4px;
     }
-    
+
     button {
       margin-left: 8px;
     }
@@ -67,16 +58,11 @@
 }
 
 .chart-container {
-  width: 100%;
-  min-height: 600px;
   position: relative;
+  border: 1px solid #ddd;
 }
 
 #chart {
-  width: 100%;
-  overflow: hidden;
-  max-height: 800px;
-  
   svg {
     cursor: move; // Indicate that the chart is pannable
   }
@@ -90,7 +76,7 @@
   flex-direction: column;
   gap: 10px;
   z-index: 10;
-  
+
   button {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   }
@@ -119,7 +105,7 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   padding: 10px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   opacity: 0.9;
   z-index: 1000;
   pointer-events: none;
@@ -167,24 +153,28 @@
     cursor: pointer;
     stroke-width: 2px;
     transition: fill 0.2s;
-    
+
     &.focused {
-      stroke: #FF5722;
+      stroke: #ff5722;
       stroke-width: 3px;
     }
   }
 
   .nodes text {
     pointer-events: none;
-    text-shadow: 
-      0 1px 0 #fff, 
-      1px 0 0 #fff, 
-      0 -1px 0 #fff, 
+    text-shadow:
+      0 1px 0 #fff,
+      1px 0 0 #fff,
+      0 -1px 0 #fff,
       -1px 0 0 #fff;
   }
 
   .legend {
     font-family: 'Roboto', sans-serif;
+  }
+
+  .mat-mdc-form-field-subscript-wrapper {
+    display: none;
   }
 }
 
@@ -207,7 +197,7 @@
     max-width: 100%;
     height: auto;
   }
-  
+
   .zoom-controls {
     bottom: 10px;
     right: 10px;

@@ -1,0 +1,10 @@
+@use '../../styles/flex.styles.scss';
+
+main {
+  padding: 0 2rem 2rem 2rem;
+
+  max-width: calc(960px - 4rem);
+
+  // Center the main content
+  margin: 0 auto;
+}

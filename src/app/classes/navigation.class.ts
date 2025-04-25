@@ -14,4 +14,8 @@ export class Navigation {
   async navigateToHome() {
     await this.router.navigate(['home']);
   }
+
+  async navigateToUsers() {
+    await this.router.navigate(['users']);
+  }
 }
