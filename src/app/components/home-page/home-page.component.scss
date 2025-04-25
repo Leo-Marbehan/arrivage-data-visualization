@@ -2,11 +2,11 @@
 
 main {
   padding: 0 2rem 2rem 2rem;
-
   max-width: calc(960px - 4rem);
 
   // Center the main content
   margin: 0 auto;
+  height: 100vh; 
 }
 
 p,
@@ -24,6 +24,7 @@ ul {
     flex-direction: row;
     align-items: center;
     gap: 0.5rem;
+    color:rgb(228, 183, 69);
 
     > mat-icon {
       opacity: 0.4;
@@ -37,4 +38,24 @@ ul {
 button[mat-raised-button] {
   display: block;
   margin-bottom: 1rem;
+  background-color: black;
+  color: rgb(228, 183, 69);
+}
+
+.section {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 0.8s ease-out;
+  will-change: opacity, transform;
+  margin-bottom: 70px;
+  padding-bottom: 30px;
+  
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
 }
