@@ -1,49 +1,39 @@
 <app-toolbar></app-toolbar>
 <!doctype html>
 <meta charset="utf-8" />
+
 <div class="header">
   <h2>
-    Titre
+    Flux de marchandises au Québec
   </h2>
   <p>
-    Description
+    Ce graphique permet de visualiser différents types de flux entre les régions et sous-régions du Québec.
   </p>
 </div>
-<div id="diagramme">
-  <div id="radio-group">
-    <mat-radio-group
-      id="data-type-toggle"
-      class="vertical-toggle-group"
-      (change)="change_shown_data($event.value)">
-      <mat-radio-button value="amount" [checked]="shown_data === 'amount'"
-        >Montant hors-taxes</mat-radio-button
-      >
-      <mat-radio-button
-        value="tax_amount"
-        [checked]="shown_data === 'tax_amount'"
-        >Montant avec taxes</mat-radio-button
-      >
-      <mat-radio-button
-        value="distance"
-        disabled
-        [checked]="shown_data === 'distance'"
-        >Distances</mat-radio-button
-      >
-      <mat-radio-button
-        value="nbr_orders"
-        [checked]="shown_data === 'nbr_orders'"
-        >Nombre de commandes</mat-radio-button
-      >
-    </mat-radio-group>
 
-    <mat-radio-group id="subregion-toggle" class="vertical-toggle-group">
-      <mat-radio-button
-        *ngFor="let region of regions"
-        [value]="region"
-        [checked]="expanded_region === region"
-        (click)="toggle_expanded_region(region)"
-        >{{ region }}</mat-radio-button
-      >
-    </mat-radio-group>
-  </div>
+<div id="container-visualization">
+  <span id="settings">
+  </span>
+
+  <span id="visualization"></span>
+
+  <span id="dynamic-legend">
+    <div id="visible-box">
+      <mat-form-field>
+        <mat-label>Explorer une région</mat-label>
+        <mat-select (selectionChange)="toggle_expanded_region($event)">
+          <mat-option  [value]="null">aucune</mat-option>
+          <mat-option *ngFor="let region of v3ps.regions" [value]="region">{{region}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+  
+      <mat-form-field>
+        <mat-label>Type de données</mat-label>
+        <mat-select [value]="v3ps.data_type" (selectionChange)="change_shown_data($event)">
+          <mat-option *ngFor="let dt of data_type_dict" [value]="dt[0]">{{dt[1]}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </span>
+
 </div>
