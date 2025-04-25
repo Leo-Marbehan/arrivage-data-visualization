@@ -357,7 +357,7 @@ export class OrdersService {
       (isCreatorLoggedIn &&
         buyerOrganizationId === '' &&
         (creatorOrganizationId === '' ||
-          creatorOrganizationId === buyerOrganizationId))
+          creatorOrganizationId === vendorOrganizationId))
     ) {
       this.logError('Buyer organization id is missing in order', rawOrder);
       return null;

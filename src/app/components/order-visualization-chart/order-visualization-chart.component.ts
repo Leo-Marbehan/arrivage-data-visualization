@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
 import {
   Component,
-  OnInit,
-  WritableSignal,
   computed,
   effect,
   inject,
+  OnInit,
   signal,
+  WritableSignal,
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -15,9 +15,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import * as d3 from 'd3';
+import { translateVendorProductCategory } from '../../models/organizations.model';
 import { OrdersService } from '../../services/orders.service';
 import { OrganizationsService } from '../../services/organizations.service';
-import { translateVendorProductCategory, VendorOrganization } from '../../models/organizations.model';
 
 interface ChartData {
   id: string;
@@ -71,8 +71,14 @@ export class OrderVisualizationChartComponent implements OnInit {
   readonly focusedNodeId: WritableSignal<string | null> = signal(null);
 
   // Variables for zoom and pan
-  private svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null = null;
-  private mainGroup: d3.Selection<SVGGElement, unknown, HTMLElement, any> | null = null;
+  private svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any> | null =
+    null;
+  private mainGroup: d3.Selection<
+    SVGGElement,
+    unknown,
+    HTMLElement,
+    any
+  > | null = null;
   private zoom: d3.ZoomBehavior<SVGSVGElement, unknown> | null = null;
   private currentZoom = { scale: 1, x: 0, y: 0 };
   private readonly ZOOM_STEP = 0.3;
@@ -102,7 +108,10 @@ export class OrderVisualizationChartComponent implements OnInit {
 
   // Charger tous les IDs des commandes et compter les occurrences
   private processOrdersData(): void {
-    const orders = this.ordersService.orders;
+    const orders = this.ordersService.orders.filter(
+      order =>
+        order.buyerOrganizationId !== '' && order.vendorOrganizationId !== ''
+    );
 
     // Réinitialiser les maps
     this.vendorsWithOrders.clear();
@@ -323,7 +332,7 @@ export class OrderVisualizationChartComponent implements OnInit {
       // Ajouter les acheteurs et les liens
       for (const order of relevantOrders) {
         const buyerId = order.buyerOrganizationId;
-        
+
         // Ajouter le nœud acheteur s'il n'existe pas encore
         if (!nodeMap.has(buyerId)) {
           nodeMap.set(buyerId, {
@@ -333,11 +342,11 @@ export class OrderVisualizationChartComponent implements OnInit {
             value: 0,
           });
         }
-        
+
         // Incrémenter la valeur du nœud
         const buyerNode = nodeMap.get(buyerId)!;
         buyerNode.value += 1;
-        
+
         // Créer ou mettre à jour le lien
         const linkId = `${vendorId}-${buyerId}`;
         if (!linkMap.has(linkId)) {
@@ -373,7 +382,7 @@ export class OrderVisualizationChartComponent implements OnInit {
       // Ajouter les vendeurs et les liens
       for (const order of relevantOrders) {
         const vendorId = order.vendorOrganizationId;
-        
+
         // Ajouter le nœud vendeur s'il n'existe pas encore
         if (!nodeMap.has(vendorId)) {
           nodeMap.set(vendorId, {
@@ -383,11 +392,11 @@ export class OrderVisualizationChartComponent implements OnInit {
             value: 0,
           });
         }
-        
+
         // Incrémenter la valeur du nœud
         const vendorNode = nodeMap.get(vendorId)!;
         vendorNode.value += 1;
-        
+
         // Créer ou mettre à jour le lien
         const linkId = `${vendorId}-${buyerId}`;
         if (!linkMap.has(linkId)) {
@@ -408,9 +417,9 @@ export class OrderVisualizationChartComponent implements OnInit {
     const sortedNodes = Array.from(nodeMap.values())
       .sort((a, b) => b.value - a.value)
       .slice(0, 16); // 15 + le nœud central
-    
+
     const nodeIds = new Set(sortedNodes.map(node => node.id));
-    
+
     // Ne garder que les liens entre les nœuds retenus
     const filteredLinks = Array.from(linkMap.values())
       .filter(link => nodeIds.has(link.source) && nodeIds.has(link.target))
@@ -498,54 +507,59 @@ export class OrderVisualizationChartComponent implements OnInit {
       }
 
       // Filtrer les nœuds
-      const filteredNodes = Array.from(nodeMap.values()).filter(node => 
+      const filteredNodes = Array.from(nodeMap.values()).filter(node =>
         connectedNodes.has(node.id)
       );
 
       // Filtrer les liens
-      const filteredLinks = Array.from(this.allLinks.values()).filter(link => 
-        (link.source === focusedId || link.target === focusedId) &&
-        connectedNodes.has(link.source) && connectedNodes.has(link.target)
+      const filteredLinks = Array.from(this.allLinks.values()).filter(
+        link =>
+          (link.source === focusedId || link.target === focusedId) &&
+          connectedNodes.has(link.source) &&
+          connectedNodes.has(link.target)
       );
 
       networkData.nodes = filteredNodes;
       networkData.links = filteredLinks;
     } else {
       // Sort nodes by connection count (most connected first)
-      const sortedNodes = Array.from(nodeMap.values())
-        .sort((a, b) => {
-          const aCount = nodeConnections.has(a.id) ? nodeConnections.get(a.id)!.size : 0;
-          const bCount = nodeConnections.has(b.id) ? nodeConnections.get(b.id)!.size : 0;
-          
-          if (aCount !== bCount) {
-            return bCount - aCount; // Sort by connection count first
-          }
-          return b.value - a.value; // Then by value
-        });
-        // Ne plus limiter le nombre maximum de nœuds
-        // .slice(0, maxNodesToShow);
+      const sortedNodes = Array.from(nodeMap.values()).sort((a, b) => {
+        const aCount = nodeConnections.has(a.id)
+          ? nodeConnections.get(a.id)!.size
+          : 0;
+        const bCount = nodeConnections.has(b.id)
+          ? nodeConnections.get(b.id)!.size
+          : 0;
+
+        if (aCount !== bCount) {
+          return bCount - aCount; // Sort by connection count first
+        }
+        return b.value - a.value; // Then by value
+      });
+      // Ne plus limiter le nombre maximum de nœuds
+      // .slice(0, maxNodesToShow);
 
       const nodeIds = new Set(sortedNodes.map(node => node.id));
 
       // Ensure we include links for all selected nodes
       const allRelevantLinks = [];
-      
+
       // First pass: collect all links between selected nodes
       for (const [linkId, link] of this.allLinks.entries()) {
         if (nodeIds.has(link.source) && nodeIds.has(link.target)) {
           allRelevantLinks.push(link);
         }
       }
-      
+
       // Sort links by value
       allRelevantLinks.sort((a, b) => b.value - a.value);
-      
+
       // Track which nodes are connected in our visualization
       const connectedInVisualization = new Set<string>();
-      
+
       // Second pass: ensure all nodes have at least one connection
       const finalLinks = [];
-      
+
       // Add top links first - montrer plus de liens importants
       const topLinksCount = Math.min(200, allRelevantLinks.length);
       for (let i = 0; i < topLinksCount; i++) {
@@ -556,7 +570,7 @@ export class OrderVisualizationChartComponent implements OnInit {
           connectedInVisualization.add(link.target);
         }
       }
-      
+
       // Now find any nodes that aren't connected yet
       for (const node of sortedNodes) {
         if (!connectedInVisualization.has(node.id)) {
@@ -564,14 +578,15 @@ export class OrderVisualizationChartComponent implements OnInit {
           let bestLink = null;
           let bestValue = 0;
           let bestLinkIsSource = false;
-          
+
           for (const [linkId, link] of this.allLinks.entries()) {
             const isSource = link.source === node.id;
             const isTarget = link.target === node.id;
-            
-            if ((isSource && nodeIds.has(link.target)) || 
-                (isTarget && nodeIds.has(link.source))) {
-              
+
+            if (
+              (isSource && nodeIds.has(link.target)) ||
+              (isTarget && nodeIds.has(link.source))
+            ) {
               if (link.value > bestValue) {
                 bestLink = link;
                 bestValue = link.value;
@@ -579,11 +594,13 @@ export class OrderVisualizationChartComponent implements OnInit {
               }
             }
           }
-          
+
           if (bestLink) {
             finalLinks.push(bestLink);
             connectedInVisualization.add(node.id);
-            connectedInVisualization.add(bestLinkIsSource ? bestLink.target : bestLink.source);
+            connectedInVisualization.add(
+              bestLinkIsSource ? bestLink.target : bestLink.source
+            );
           }
         }
       }
@@ -646,7 +663,7 @@ export class OrderVisualizationChartComponent implements OnInit {
   // Toggle global view mode
   toggleGlobalView(): void {
     this.isGlobalView.update(value => !value);
-    
+
     // Reset focused node when toggling
     if (!this.isGlobalView()) {
       this.focusedNodeId.set(null);
@@ -702,7 +719,10 @@ export class OrderVisualizationChartComponent implements OnInit {
   // Zoom in the network diagram
   zoomIn(): void {
     if (this.zoom && this.svg) {
-      const newScale = Math.min(this.currentZoom.scale + this.ZOOM_STEP, this.MAX_ZOOM);
+      const newScale = Math.min(
+        this.currentZoom.scale + this.ZOOM_STEP,
+        this.MAX_ZOOM
+      );
       this.zoomTo(newScale);
     }
   }
@@ -710,7 +730,10 @@ export class OrderVisualizationChartComponent implements OnInit {
   // Zoom out the network diagram
   zoomOut(): void {
     if (this.zoom && this.svg) {
-      const newScale = Math.max(this.currentZoom.scale - this.ZOOM_STEP, this.MIN_ZOOM);
+      const newScale = Math.max(
+        this.currentZoom.scale - this.ZOOM_STEP,
+        this.MIN_ZOOM
+      );
       this.zoomTo(newScale);
     }
   }
@@ -719,10 +742,10 @@ export class OrderVisualizationChartComponent implements OnInit {
   resetZoom(): void {
     if (this.zoom && this.svg) {
       this.currentZoom = { scale: 1, x: 0, y: 0 };
-      this.svg.transition().duration(750).call(
-        this.zoom.transform,
-        d3.zoomIdentity
-      );
+      this.svg
+        .transition()
+        .duration(750)
+        .call(this.zoom.transform, d3.zoomIdentity);
     }
   }
 
@@ -731,17 +754,14 @@ export class OrderVisualizationChartComponent implements OnInit {
     if (this.zoom && this.svg) {
       // Update current scale
       this.currentZoom.scale = scale;
-      
+
       // Create a new transform from current values
       const transform = d3.zoomIdentity
         .translate(this.currentZoom.x, this.currentZoom.y)
         .scale(this.currentZoom.scale);
-      
+
       // Apply the transform with a transition
-      this.svg.transition().duration(300).call(
-        this.zoom.transform,
-        transform
-      );
+      this.svg.transition().duration(300).call(this.zoom.transform, transform);
     }
   }
 
@@ -752,9 +772,9 @@ export class OrderVisualizationChartComponent implements OnInit {
       this.currentZoom = {
         scale: event.transform.k,
         x: event.transform.x,
-        y: event.transform.y
+        y: event.transform.y,
       };
-      
+
       // Apply the transform
       this.mainGroup.attr('transform', event.transform.toString());
     }
@@ -762,19 +782,27 @@ export class OrderVisualizationChartComponent implements OnInit {
 
   // Récupérer les catégories de produits d'un vendeur
   private getVendorProductCategories(vendorId: string): string[] {
-    const vendor = this.organizationsService.vendorOrganizations.find(v => v.id === vendorId);
-    if (!vendor || !vendor.productCategories || vendor.productCategories.length === 0) {
+    const vendor = this.organizationsService.vendorOrganizations.find(
+      v => v.id === vendorId
+    );
+    if (
+      !vendor ||
+      !vendor.productCategories ||
+      vendor.productCategories.length === 0
+    ) {
       return ['Catégorie non spécifiée'];
     }
-    
+
     // Traduire les catégories de produits en français
-    return vendor.productCategories.map(cat => translateVendorProductCategory(cat));
+    return vendor.productCategories.map(cat =>
+      translateVendorProductCategory(cat)
+    );
   }
 
   private renderNetworkDiagram(data: NetworkData): void {
     // Définir les dimensions
     const margin = { top: 40, right: 30, bottom: 40, left: 30 };
-    const width = 800 - margin.left - margin.right;
+    const width = 1080 - margin.left - margin.right;
     const height = 600 - margin.top - margin.bottom;
 
     // Créer le SVG
@@ -783,27 +811,26 @@ export class OrderVisualizationChartComponent implements OnInit {
       .append('svg')
       .attr('width', width + margin.left + margin.right)
       .attr('height', height + margin.top + margin.bottom);
-    
+
     // Create zoom behavior
-    this.zoom = d3.zoom<SVGSVGElement, unknown>()
+    this.zoom = d3
+      .zoom<SVGSVGElement, unknown>()
       .scaleExtent([this.MIN_ZOOM, this.MAX_ZOOM])
-      .on('zoom', (event) => this.zoomed(event));
-    
+      .on('zoom', event => this.zoomed(event));
+
     // Apply zoom to the SVG
     svgContainer.call(this.zoom);
-    
+
     // Reset zoom when switching views
     if (this.isGlobalView()) {
       this.currentZoom = { scale: 1, x: 0, y: 0 };
-      svgContainer.call(
-        this.zoom.transform,
-        d3.zoomIdentity
-      );
+      svgContainer.call(this.zoom.transform, d3.zoomIdentity);
     }
-    
+
     // Create a main group that will be transformed during zoom/pan
     this.svg = svgContainer;
-    this.mainGroup = svgContainer.append('g')
+    this.mainGroup = svgContainer
+      .append('g')
       .attr('transform', `translate(${margin.left},${margin.top})`);
 
     // Créer un groupe pour les liens et les nœuds
@@ -813,13 +840,14 @@ export class OrderVisualizationChartComponent implements OnInit {
     // Créer un titre (fixed position, outside of the zoom group)
     let legendTitle = '';
     if (this.isGlobalView()) {
-      legendTitle = this.focusedNodeId() 
+      legendTitle = this.focusedNodeId()
         ? `Connexions de ${this.getNodeName(this.focusedNodeId()!)}`
         : 'Vue globale du réseau de vendeurs et acheteurs';
     } else {
-      legendTitle = this.viewMode() === 'buyersByVendor'
-        ? 'Réseau d\'acheteurs connectés à ce vendeur'
-        : 'Réseau de vendeurs connectés à cet acheteur';
+      legendTitle =
+        this.viewMode() === 'buyersByVendor'
+          ? "Réseau d'acheteurs connectés à ce vendeur"
+          : 'Réseau de vendeurs connectés à cet acheteur';
     }
 
     svgContainer
@@ -836,7 +864,7 @@ export class OrderVisualizationChartComponent implements OnInit {
     const links = data.links.map(d => ({
       source: d.source,
       target: d.target,
-      value: d.value
+      value: d.value,
     }));
 
     // Préparer les nœuds pour d3
@@ -844,17 +872,20 @@ export class OrderVisualizationChartComponent implements OnInit {
       id: d.id,
       displayName: d.displayName,
       type: d.type,
-      value: d.value
+      value: d.value,
     }));
 
     // Adjust force layout parameters based on view mode and number of nodes
     const nodeCount = nodes.length;
     let forceStrength, linkDistance, collideRadius;
-    
+
     if (this.isGlobalView()) {
       // Paramètres ajustés pour la vue globale avec beaucoup de nœuds
-      forceStrength = Math.min(-50, -200 / Math.log(Math.max(nodeCount, 10)));
-      linkDistance = Math.min(200, 50 + 100 / (Math.log(Math.max(nodeCount, 10)) / 2));
+      forceStrength = Math.min(-5, -20 / Math.log(Math.max(nodeCount, 10)));
+      linkDistance = Math.min(
+        200,
+        50 + 100 / (Math.log(Math.max(nodeCount, 10)) / 2)
+      );
       collideRadius = (d: any) => Math.sqrt(d.value) * 1.5 + 5;
     } else {
       // Paramètres pour la vue filtrée (moins de nœuds)
@@ -866,7 +897,13 @@ export class OrderVisualizationChartComponent implements OnInit {
     // Créer la simulation de force
     const simulation = d3
       .forceSimulation(nodes as any)
-      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(linkDistance))
+      .force(
+        'link',
+        d3
+          .forceLink(links)
+          .id((d: any) => d.id)
+          .distance(linkDistance)
+      )
       .force('charge', d3.forceManyBody().strength(forceStrength))
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collide', d3.forceCollide().radius(collideRadius).iterations(2));
@@ -877,14 +914,19 @@ export class OrderVisualizationChartComponent implements OnInit {
       .data(links)
       .enter()
       .append('line')
-      .attr('stroke-width', (d: any) => Math.max(1, Math.min(5, Math.sqrt(d.value) * 0.5)))
+      .attr('stroke-width', (d: any) =>
+        Math.max(1, Math.min(5, Math.sqrt(d.value) * 0.5))
+      )
       .attr('stroke', '#999')
       .attr('stroke-opacity', 0.6);
 
     // Calculer la taille des nœuds en fonction de leur nombre de commandes
     // Ajuster l'échelle pour mieux fonctionner avec un grand nombre de nœuds
     const nodeSize = (d: any) => {
-      const baseSize = Math.min(20, Math.max(5, Math.sqrt(d.value) * (this.isGlobalView() ? 1.5 : 3)));
+      const baseSize = Math.min(
+        20,
+        Math.max(5, Math.sqrt(d.value) * (this.isGlobalView() ? 1.5 : 3))
+      );
       return this.isGlobalView() && nodeCount > 100 ? baseSize * 0.6 : baseSize;
     };
 
@@ -894,25 +936,32 @@ export class OrderVisualizationChartComponent implements OnInit {
       .data(nodes)
       .enter()
       .append('g')
-      .call(d3.drag()
-        .on('start', dragstarted)
-        .on('drag', dragged)
-        .on('end', dragended) as any);
+      .call(
+        d3
+          .drag()
+          .on('start', dragstarted)
+          .on('drag', dragged)
+          .on('end', dragended) as any
+      );
 
     // Ajouter des cercles pour les nœuds
     node
       .append('circle')
       .attr('r', nodeSize)
-      .attr('fill', (d: any) => d.type === 'buyer' ? this.BUYER_COLOR : this.VENDOR_COLOR)
+      .attr('fill', (d: any) =>
+        d.type === 'buyer' ? this.BUYER_COLOR : this.VENDOR_COLOR
+      )
       .attr('stroke', (d: any) => {
         // Mettre en évidence le nœud focalisé avec une bordure spéciale
         return d.id === this.focusedNodeId() ? '#FF5722' : '#fff';
       })
-      .attr('stroke-width', (d: any) => d.id === this.focusedNodeId() ? 3 : 2)
+      .attr('stroke-width', (d: any) => (d.id === this.focusedNodeId() ? 3 : 2))
       .on('mouseenter', (event: MouseEvent, d: any) => {
         // Mettre en évidence le nœud
-        d3.select(event.target as Element)
-          .attr('fill', d.type === 'buyer' ? this.BUYER_HOVER_COLOR : this.VENDOR_HOVER_COLOR);
+        d3.select(event.target as Element).attr(
+          'fill',
+          d.type === 'buyer' ? this.BUYER_HOVER_COLOR : this.VENDOR_HOVER_COLOR
+        );
 
         // Remove any existing tooltips first to prevent duplicates
         d3.select('body').selectAll('.tooltip').remove();
@@ -921,7 +970,7 @@ export class OrderVisualizationChartComponent implements OnInit {
         let tooltipContent = `<strong>${d.displayName}</strong><br>
           ${d.type === 'buyer' ? 'Acheteur' : 'Vendeur'}<br>
           ${d.value} commande(s)<br>`;
-        
+
         // Ajouter les catégories de produits si c'est un vendeur
         if (d.type === 'vendor') {
           const categories = this.getVendorProductCategories(d.id);
@@ -931,7 +980,7 @@ export class OrderVisualizationChartComponent implements OnInit {
             tooltipContent += `</div>`;
           }
         }
-        
+
         tooltipContent += `<small>ID: ${d.id}</small>
           <div style="margin-top: 5px; font-style: italic;">Cliquez pour filtrer</div>`;
 
@@ -959,18 +1008,24 @@ export class OrderVisualizationChartComponent implements OnInit {
           .style('top', event.pageY - 28 + 'px');
       })
       .on('mousemove', function (event: MouseEvent) {
-        d3.select('body').select('.tooltip')
+        d3.select('body')
+          .select('.tooltip')
           .style('left', event.pageX + 10 + 'px')
           .style('top', event.pageY - 28 + 'px');
       })
       .on('mouseout', function (event: MouseEvent, d: any) {
-        d3.select(event.target as Element)
-          .attr('fill', d.type === 'buyer' ? '#4285F4' : '#0F9D58');
-        
+        d3.select(event.target as Element).attr(
+          'fill',
+          d.type === 'buyer' ? '#4285F4' : '#0F9D58'
+        );
+
         // Ensure tooltip is removed
         d3.select('body').selectAll('.tooltip').remove();
       })
       .on('click', (_: MouseEvent, d: any) => {
+        // Ensure tooltip is removed
+        d3.select('body').selectAll('.tooltip').remove();
+
         // Si nous sommes en mode global, focus sur le nœud
         if (this.isGlobalView()) {
           if (this.focusedNodeId() === d.id) {
@@ -999,7 +1054,11 @@ export class OrderVisualizationChartComponent implements OnInit {
       .attr('dy', '.35em')
       .text((d: any) => {
         // Afficher uniquement pour les nœuds importants ou le nœud focalisé
-        if (d.value > 3 || d.id === this.selectedEntityId() || d.id === this.focusedNodeId()) {
+        if (
+          d.value > 3 ||
+          d.id === this.selectedEntityId() ||
+          d.id === this.focusedNodeId()
+        ) {
           // Tronquer le nom si trop long
           return d.displayName.length > 20
             ? d.displayName.substring(0, 17) + '...'
@@ -1043,7 +1102,10 @@ export class OrderVisualizationChartComponent implements OnInit {
     const legend = svgContainer
       .append('g')
       .attr('class', 'legend')
-      .attr('transform', `translate(${width + margin.left - 90}, ${margin.top + 10})`);
+      .attr(
+        'transform',
+        `translate(${width + margin.left - 90}, ${margin.top + 10})`
+      );
 
     // Légende pour les acheteurs
     legend
@@ -1093,7 +1155,7 @@ export class OrderVisualizationChartComponent implements OnInit {
         .text('Nœud sélectionné')
         .style('font-size', '12px');
     }
-    
+
     // Add zoom instructions text (if in global view)
     if (this.isGlobalView()) {
       svgContainer
@@ -1104,7 +1166,9 @@ export class OrderVisualizationChartComponent implements OnInit {
         .attr('text-anchor', 'start')
         .style('font-size', '12px')
         .style('fill', '#666')
-        .text('Utilisez la souris pour déplacer et zoomer, ou les boutons de zoom');
+        .text(
+          'Utilisez la souris pour déplacer et zoomer, ou les boutons de zoom'
+        );
     }
   }
 }
