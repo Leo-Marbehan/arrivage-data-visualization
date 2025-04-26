@@ -1,11 +1,25 @@
 .container {
   padding: 2rem;
+  text-align: center;
 }
 
 p {
-  max-width: 800px;
+  max-width: 1000px;
+  text-align: center; 
+  margin: 0 auto; 
+  margin-bottom: 1rem;
+  margin-top: 1rem;
 }
 
 .table {
   margin-block-start: 1rem;
+}
+
+button[mat-raised-button] {
+  background-color: black;
+  color: rgb(228, 183, 69);
+}
+
+h1 {
+  color: rgb(228, 183, 69);
 }

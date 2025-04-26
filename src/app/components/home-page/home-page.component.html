@@ -1,5 +1,6 @@
 <app-toolbar />
 <main>
+  <section class="section">
   <a
     class="logo-container flex-column align-center"
     href="https://arrivage.com"
@@ -33,9 +34,13 @@
   <p>L'ensemble des données peut être consulté ici:</p>
 
   <button mat-raised-button (click)="navigateToRawData()">
-    Données brutes
+    <mat-icon>bar_chart</mat-icon>
+  <span>Données brutes</span>
   </button>
 
+  </section>
+
+  <section class="section">
   <a href="home#buyers" class="anchor-link">
     <h2 id="buyers">
       Acheteurs
@@ -65,9 +70,12 @@
 
   <button mat-raised-button (click)="navigateToVisualization(2)">
     <mat-icon>bar_chart</mat-icon>
-    <span>Acheteurs: commandes et dépenses</span>
+    <span>Commandes et dépenses des acheteurs</span>
   </button>
 
+</section>
+
+<section class="section">
   <a href="home#orders" class="anchor-link">
     <h2 id="orders">
       Commandes
@@ -90,16 +98,19 @@
     temps.
   </p>
 
+
   <button mat-raised-button (click)="navigateToVisualization(3)">
     <mat-icon>bar_chart</mat-icon>
-    <!-- TODO -->
-    <span>Visualisation 3</span>
+    <span>Flux marchands régionaux</span>
   </button>
 
   <button mat-raised-button (click)="navigateToVisualization(5)">
     <mat-icon>bar_chart</mat-icon>
     <span>Évolution des commandes</span>
   </button>
+
+</section>
+<section class="section">
 
   <a href="home#orders-by-region" class="anchor-link">
     <h2 id="orders-by-region">
@@ -130,6 +141,8 @@
     <mat-icon>bar_chart</mat-icon>
     <span>Évolution des utilisateurs</span>
   </button>
+</section>
+<section class="section">
 
   <a href="home#team" class="anchor-link">
     <h1 id="team">
@@ -155,4 +168,6 @@
     <li>Fatima Mellata</li>
     <li>Estelle Polyte</li>
   </ul>
+</section>
+
 </main>
